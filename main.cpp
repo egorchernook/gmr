@@ -19,10 +19,10 @@ calculation(typename task::config_t config,
 
     using task::base_config;
     outputer_t outputer{config, current_dir};
-    outputer.createDirectoryAndEnter(outputer_t::createName("N = ", config.N))
-        .createDirectoryAndEnter(outputer_t::createName("T_creation = ", config.T_creation))
-        .createDirectoryAndEnter(outputer_t::createName("T_sample = ", config.T_sample))
-        .createDirectoryAndEnter(outputer_t::createName("h = ", config.field));
+    outputer.createDirectoryAndEnter(outputer_t::createName("N =", config.N))
+            .createDirectoryAndEnter(outputer_t::createName("T_creation =", config.T_creation))
+            .createDirectoryAndEnter(outputer_t::createName("T_sample =", config.T_sample))
+            .createDirectoryAndEnter(outputer_t::createName("h =", config.field));
 
     auto m_out = outputer.createFile("m");
     m_out.printLn(
@@ -68,7 +68,7 @@ calculation(typename task::config_t config,
 int main(int argc, char *argv[])
 {
     unsigned long threads_amount{};
-    if (argc < 1)
+    if (argc == 1)
     {
         threads_amount = 2;
     }
@@ -88,6 +88,8 @@ int main(int argc, char *argv[])
     std::vector<std::future<typename task::config_t>> vec(threads_amount - 1);
 
     const auto currentDir = (std::filesystem::current_path() / "results" / "raw").string();
+    outputer_t::create_directories(currentDir);
+    std::filesystem::current_path(currentDir);
     const auto configs = task::base_config::getConfigs();
     for (auto iter = configs.begin(); iter != configs.end(); ++iter)
     {
