@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iomanip>
 #include <string_view>
+#include <type_traits>
+#include <array>
 
 #include "config.hpp"
 
@@ -13,36 +15,54 @@ class outputer_t
 {
     const std::filesystem::path folder;
     const int id;
-
 public:
-    static std::string createName(std::string_view text, auto &&value_var) noexcept {
-        std::ostringstream stream{};
-        stream << text << value_var;
-        return stream.str();
-    }
-    static std::string createName(std::string_view text, const auto &value_var) noexcept {
-        std::ostringstream stream{};
-        stream << text << value_var;
-        return stream.str();
-    }
-
-    outputer_t(const typename task::config_t &config, const std::string_view current_dir)
-        : folder{current_dir}, id{config.stat_id}
+    
+    static std::string createName(std::string_view text, auto &&value_var) noexcept
     {
-        using namespace std::filesystem;
-        if (!exists(folder))
+        std::ostringstream stream{};
+        stream << text << " " << value_var;
+        return stream.str();
+    }
+    static std::string createName(std::string_view text, const auto &value_var) noexcept
+    {
+        std::ostringstream stream{};
+        stream << text << " " << value_var;
+        return stream.str();
+    }
+    static std::string createName(std::string_view text, const task::base_config::spin_t::magn_t &value_var) noexcept
+    {
+        std::ostringstream stream{};
+        stream << text << " " << to_string(value_var);
+        return stream.str();
+    }
+    static std::string createName(std::string_view text, const std::integral auto &value_var) noexcept
+    {
+        std::ostringstream stream{};
+        stream << text << " " << std::to_string(value_var);
+        return stream.str();
+    }
+    
+
+    outputer_t(const typename task::config_t &config, std::string_view current_dir)
+        : folder{current_dir}, id{config.stat_id} 
+    {
+        std::filesystem::current_path(current_dir);
+    }
+
+    static void create_directories(std::string_view directory_name)
+    {
+        using std::filesystem::exists;
+        if (!exists(directory_name))
         {
-            create_directories(folder);
+            std::filesystem::create_directories(directory_name);
         }
     }
 
-    outputer_t& createDirectoryAndEnter(std::string name) noexcept {
+    outputer_t &createDirectoryAndEnter(std::string_view directory_name) noexcept
+    {
         using std::filesystem::current_path;
-        const auto dir = current_path() / name;
-        if (!exists(dir))
-        {
-            create_directories(dir);
-        }
+        const auto dir = current_path() / directory_name;
+        create_directories(dir.string());
         current_path(dir);
         return *this;
     }

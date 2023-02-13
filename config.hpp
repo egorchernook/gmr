@@ -7,17 +7,17 @@
 #include <string_view>
 #include <string>
 
-#include "../qss/src/algorithms/Metropolis.hpp"
-#include "../qss/src/models/heisenberg.hpp"
-#include "../qss/src/lattices/3d/fcc.hpp"
-#include "../qss/src/lattices/3d/3d.hpp"
-#include "../qss/src/lattices/borders_conditions.hpp"
-#include "../qss/src/utility/quantities.hpp"
-#include "../qss/src/utility/functions.hpp"
-#include "../qss/src/systems/multilayer.hpp"
-#include "../qss/src/systems/multilayer_system.hpp"
-#include "../qss/src/algorithms/spin_transport.hpp"
-#include "../qss/src/models/electron_dencity.hpp"
+#include "qss/src/algorithms/Metropolis.hpp"
+#include "qss/src/models/heisenberg.hpp"
+#include "qss/src/lattices/3d/fcc.hpp"
+#include "qss/src/lattices/3d/3d.hpp"
+#include "qss/src/lattices/borders_conditions.hpp"
+#include "qss/src/utility/quantities.hpp"
+#include "qss/src/utility/functions.hpp"
+#include "qss/src/systems/multilayer.hpp"
+#include "qss/src/systems/multilayer_system.hpp"
+#include "qss/src/algorithms/spin_transport.hpp"
+#include "qss/src/models/electron_dencity.hpp"
 
 namespace task
 {
