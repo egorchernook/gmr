@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <coroutine>
 #include <future>
+#include <iomanip>
+#include <ctime>
 
 #include "config.hpp"
 #include "system.hpp"
@@ -16,13 +18,12 @@ typename task::config_t
 calculation(typename task::config_t config,
             std::string_view current_dir)
 {
-
     using task::base_config;
     outputer_t outputer{config, current_dir};
     outputer.createDirectoryAndEnter(outputer_t::createName("N =", config.N))
-            .createDirectoryAndEnter(outputer_t::createName("T_creation =", config.T_creation))
-            .createDirectoryAndEnter(outputer_t::createName("T_sample =", config.T_sample))
-            .createDirectoryAndEnter(outputer_t::createName("h =", config.field));
+        .createDirectoryAndEnter(outputer_t::createName("T_creation =", config.T_creation))
+        .createDirectoryAndEnter(outputer_t::createName("T_sample =", config.T_sample))
+        .createDirectoryAndEnter(outputer_t::createName("h =", config.field));
 
     auto m_out = outputer.createFile("m");
     m_out.printLn(
@@ -67,6 +68,15 @@ calculation(typename task::config_t config,
 
 int main(int argc, char *argv[])
 {
+    constexpr auto results_folder = "results";
+    constexpr auto raw_data_folder = "raw";
+    
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S");
+    const auto time = "data_" + oss.str();
+
     unsigned long threads_amount{};
     if (argc == 1)
     {
@@ -87,7 +97,7 @@ int main(int argc, char *argv[])
 
     std::vector<std::future<typename task::config_t>> vec(threads_amount - 1);
 
-    const auto currentDir = (std::filesystem::current_path() / "results" / "raw").string();
+    const auto currentDir = (std::filesystem::current_path() / results_folder / time / raw_data_folder).string();
     outputer_t::create_directories(currentDir);
     std::filesystem::current_path(currentDir);
     const auto configs = task::base_config::getConfigs();
@@ -97,7 +107,6 @@ int main(int argc, char *argv[])
         {
             const auto config = *iter;
             vec[id] = std::async(std::launch::async, calculation, config, currentDir);
-            ;
             iter++;
         }
 

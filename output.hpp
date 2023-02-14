@@ -13,10 +13,10 @@
 
 class outputer_t
 {
-    const std::filesystem::path folder;
+    std::filesystem::path folder;
     const int id;
+
 public:
-    
     static std::string createName(std::string_view text, auto &&value_var) noexcept
     {
         std::ostringstream stream{};
@@ -41,10 +41,9 @@ public:
         stream << text << " " << std::to_string(value_var);
         return stream.str();
     }
-    
 
     outputer_t(const typename task::config_t &config, std::string_view current_dir)
-        : folder{current_dir}, id{config.stat_id} 
+        : folder{current_dir}, id{config.stat_id}
     {
         std::filesystem::current_path(current_dir);
     }
@@ -64,6 +63,7 @@ public:
         const auto dir = current_path() / directory_name;
         create_directories(dir.string());
         current_path(dir);
+        folder = current_path();
         return *this;
     }
 
