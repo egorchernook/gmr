@@ -123,6 +123,17 @@ namespace task
         const typename base_config::spin_t::magn_t field;
     };
 
+    inline std::string createName(const config_t &config) noexcept
+    {
+        using std::to_string;
+        std::ostringstream stream{};
+        stream << "N = " << to_string(config.N)
+               << "/T_creation = " << config.T_creation
+               << "/T_sample = " << config.T_sample
+               << "/h = " << to_string(config.field);
+        return stream.str();
+    }
+
     inline std::ostream &operator<<(std::ostream &out, const config_t &data) noexcept
     {
         out << "[ "

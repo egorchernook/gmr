@@ -57,7 +57,7 @@ public:
         }
     }
 
-    outputer_t &createDirectoryAndEnter(std::string_view directory_name) noexcept
+    outputer_t &createDirectoriesAndEnter(std::string_view directory_name) noexcept
     {
         using std::filesystem::current_path;
         const auto dir = current_path() / directory_name;
