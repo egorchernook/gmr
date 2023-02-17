@@ -36,6 +36,12 @@ namespace stat
 
             std::ofstream m_out{"m.txt"};
 
+            for(auto idx = 0u; idx < input_streams.size(); ++idx) {\
+                if(!input_streams[idx].eof()) {
+                    lines_buf[idx] = std::getline(input_streams[idx]);
+                }
+            }
+
             m_out.flush();
             m_out.close();
         }
