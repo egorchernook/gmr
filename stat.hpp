@@ -20,20 +20,21 @@ namespace stat
             [](const task::config_t &conf) noexcept -> bool {
                 return conf.stat_id == 0;
             });
+
+        std::array<std::ifstream, task::base_config::stat_amount> input_streams;
+        std::array<std::string, input_streams.size()> lines_buf; 
         for (auto &config : configs)
         {
             const auto folder_name = task::createName(config);
-            fs::current_path(data_folder / stat_folder / folder_name);
-
-            std::array<std::ifstream, task::base_config::stat_amount> m_input_streams;
-            for (auto idx = 0u; idx < m_input_streams.size(); ++idx)
+            const auto path_to_file = data_folder / stat_folder / folder_name;
+            fs::current_path(path_to_file);
+            
+            for (auto idx = 0u; idx < input_streams.size(); ++idx)
             {
-                m_input_streams[idx] = std::ifstream(data_folder / raw_data_folder / folder_name / ("m_id=" + std::to_string(idx) + ".txt"), std::ios_base::in);
+                input_streams[idx] = std::ifstream(path_to_file / ("m_id=" + std::to_string(idx) + ".txt"), std::ios_base::in);
             }
 
             std::ofstream m_out{"m.txt"};
-
-            
 
             m_out.flush();
             m_out.close();
