@@ -168,8 +168,6 @@ namespace stat
             return ret_val;
         }
 
-        // std::filesystem::path getResultStat();
-
         static std::filesystem::path prepare_folder(std::filesystem::path path_to_result_folder,
                                                     std::string_view raw_data_folder,
                                                     std::string_view stat_folder) noexcept
