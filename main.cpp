@@ -13,6 +13,7 @@
 #include "config.hpp"
 #include "system.hpp"
 #include "output.hpp"
+#include "stat.hpp"
 
 typename task::config_t
 calculation(typename task::config_t config,
@@ -95,7 +96,8 @@ int main(int argc, char *argv[])
 
     std::vector<std::future<typename task::config_t>> vec(threads_amount - 1);
 
-    const auto currentDir = (std::filesystem::current_path() / results_folder / time / raw_data_folder).string();
+    const auto init_dir = std::filesystem::current_path() / results_folder / time;
+    const auto currentDir = ( init_dir / raw_data_folder).string();
     outputer_t::create_directories(currentDir);
     std::filesystem::current_path(currentDir);
     const auto configs = task::base_config::getConfigs();
@@ -122,5 +124,7 @@ int main(int argc, char *argv[])
         }
         std::cout << std::endl;
     }
+
+    stat::stater::makeStat(init_dir, raw_data_folder);
     return 0;
 }

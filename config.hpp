@@ -52,19 +52,19 @@ namespace task
         }
         // количество статистических прогонок
         constexpr static std::uint16_t stat_amount = 5;
-        constexpr static std::uint64_t mcs_init = 1'000;
-        constexpr static std::uint64_t mcs_observation = 5'000;
-        constexpr static std::array<std::uint8_t, 2> N_size_vec{3, 5};
+        constexpr static std::uint64_t mcs_init = 500;
+        constexpr static std::uint64_t mcs_observation = 1'000;
+        constexpr static std::array<std::uint8_t, 2> N_size_vec{3};
         constexpr static std::array<double, 1> T_creation_vec{0.67};
         constexpr static std::array<double, 1> T_sample_vec{0.95};
         constexpr static std::array<std::uint32_t, 4>
             t_wait_vec{100, 200, 400, 1000}; // должен быть отсортирован по увеличению
         constexpr static std::array<typename spin_t::magn_t, 5>
-            magn_field_vec{typename spin_t::magn_t{0.0, 0.0, 0.0},
-                           typename spin_t::magn_t{0.0, 0.0, 0.1},
-                           typename spin_t::magn_t{0.0, 0.0, 0.5},
-                           typename spin_t::magn_t{0.0, 0.0, 1.0},
-                           typename spin_t::magn_t{0.0, 0.0, 5.0}};
+            magn_field_vec{typename spin_t::magn_t{0.0, 0.0, 0.0}}; /*,
+                            typename spin_t::magn_t{0.0, 0.0, 0.1},
+                            typename spin_t::magn_t{0.0, 0.0, 0.5},
+                            typename spin_t::magn_t{0.0, 0.0, 1.0},
+                            typename spin_t::magn_t{0.0, 0.0, 5.0}};*/
 
         constexpr static auto
         createHamilton_f(
@@ -136,12 +136,13 @@ namespace task
 
     inline std::ostream &operator<<(std::ostream &out, const config_t &data) noexcept
     {
+        using std::to_string;
         out << "[ "
             << "stat_id = " << data.stat_id << "; "
-            << "N = " << data.N << "; "
+            << "N = " << to_string(data.N) << "; "
             << "T_creation = " << data.T_creation << "; "
             << "T_sample = " << data.T_sample << "; "
-            << "field = " << data.field << "; "
+            << "field = " << to_string(data.field) << "; "
             << "]";
         return out;
     }
