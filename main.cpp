@@ -136,6 +136,6 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
     }
 
-    stat::stater::makeStat(init_dir, raw_data_folder);
+    stat::stater::makeStat(init_dir.string(), raw_data_folder);
     return 0;
 }

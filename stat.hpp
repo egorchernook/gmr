@@ -19,12 +19,16 @@ namespace stat
             namespace fs = std::filesystem;
             const static std::string stat_folder = "processed";
 
-            const auto data_folder = prepare_folder(path_to_result_folder, raw_data_folder, stat_folder);
+            const auto data_folder = prepare_folder(path_to_result_folder,
+                                                    raw_data_folder,
+                                                    stat_folder);
 
             auto init_configs = task::base_config::getConfigs();
             std::vector<task::config_t> configs{};
-            for(auto&& elem: init_configs) {
-                if(elem.stat_id == 0) {
+            for (auto &&elem : init_configs)
+            {
+                if (elem.stat_id == 0)
+                {
                     configs.push_back(std::move(elem));
                 }
             }
@@ -32,7 +36,7 @@ namespace stat
             for (const auto &config : configs)
             {
                 const auto folder_name = task::createName(config);
-                const auto path_to_file = data_folder / stat_folder / folder_name;
+                const auto path_to_file = data_folder / folder_name;
                 fs::current_path(path_to_file);
 
                 for (auto idx = 0u; idx < input_streams.size(); ++idx)
@@ -173,19 +177,18 @@ namespace stat
         {
             namespace fs = std::filesystem;
             fs::current_path(path_to_result_folder);
-            const auto data_folder = fs::current_path();
 
-            if (!fs::exists(stat_folder))
+            if (!fs::exists(path_to_result_folder / stat_folder))
             {
-                fs::create_directory(stat_folder);
+                fs::create_directory(path_to_result_folder / stat_folder);
             }
 
             fs::copy(path_to_result_folder / raw_data_folder,
-                     fs::current_path() / stat_folder,
-                     fs::copy_options::recursive & fs::copy_options::directories_only);
-            fs::current_path(fs::current_path() / stat_folder);
+                     path_to_result_folder / stat_folder,
+                     fs::copy_options::recursive | fs::copy_options::directories_only);
+            fs::current_path(path_to_result_folder / stat_folder);
 
-            return data_folder;
+            return fs::current_path();
         }
     };
 }
