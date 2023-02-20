@@ -37,8 +37,7 @@ namespace stat
 
                 for (auto idx = 0u; idx < input_streams.size(); ++idx)
                 {
-                    input_streams[idx] = std::ifstream(path_to_file / ("m_id=" + std::to_string(idx) + ".txt"),
-                                                       std::ios_base::in);
+                    input_streams[idx] = std::ifstream(path_to_file / ("m_id=" + std::to_string(idx) + ".txt"));
                 }
 
                 const auto init_head = remove_heads(input_streams.begin(), input_streams.end());
