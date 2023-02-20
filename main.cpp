@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 {
     constexpr auto results_folder = "results";
     constexpr auto raw_data_folder = "raw";
-    
+
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
     std::ostringstream oss;
@@ -97,17 +97,28 @@ int main(int argc, char *argv[])
     std::vector<std::future<typename task::config_t>> vec(threads_amount - 1);
 
     const auto init_dir = std::filesystem::current_path() / results_folder / time;
-    const auto currentDir = ( init_dir / raw_data_folder).string();
+    {
+        std::ofstream info{"info.txt"};
+        info << init_dir << "\t" << raw_data_folder;
+        info.flush();
+        info.close();
+    }
+    const auto currentDir = (init_dir / raw_data_folder).string();
     outputer_t::create_directories(currentDir);
     std::filesystem::current_path(currentDir);
     const auto configs = task::base_config::getConfigs();
-    for (auto iter = configs.begin(); iter != configs.end(); ++iter)
+
+    auto iter = configs.begin();
+    while (iter != configs.end())
     {
-        for (auto id = 0u; id < threads_amount - 1 && iter != configs.end(); ++id)
+        for (auto id = 0u; id < threads_amount - 1; ++id)
         {
-            const auto config = *iter;
-            vec[id] = std::async(std::launch::async, calculation, config, currentDir);
-            iter++;
+            if (iter != configs.end())
+            {
+                const auto config = *iter;
+                vec[id] = std::async(std::launch::async, calculation, config, currentDir);
+                iter++;
+            }
         }
 
         if (iter != configs.end())
