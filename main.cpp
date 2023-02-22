@@ -25,12 +25,11 @@ calculation(typename task::config_t config,
 
     auto m_out = outputer.createFile("m");
     m_out.printLn(
-             "t",
              "m1", "m1x", "m1y", "m1z",
              "m2", "m2x", "m2y", "m2z")
         .printLn("mcs/s");
     auto j_out = outputer.createFile("j");
-    j_out.printLn("t", "j_up", "j_down")
+    j_out.printLn("j_up", "j_down")
         .printLn("mcs/s");
 
     auto sample = task::createSample(config);
@@ -38,7 +37,8 @@ calculation(typename task::config_t config,
 
     double j_up{};
     double j_down{};
-    for (auto mcs = 0u; mcs < base_config::mcs_observation; ++mcs)
+    constexpr auto mcs_amount = base_config::mcs_observation + base_config::t_wait_vec::back();
+    for (auto mcs = 0u; mcs < mcs_amount; ++mcs)
     {
         if (mcs == base_config::t_wait_vec.front())
         {

@@ -50,8 +50,7 @@ namespace task
         {
             return deltas[--N];
         }
-        // количество статистических прогонок
-        constexpr static std::uint16_t stat_amount = 5;
+        constexpr static std::uint16_t stat_amount = 5; // количество статистических прогонок
         constexpr static std::uint64_t mcs_init = 500;
         constexpr static std::uint64_t mcs_observation = 1'000;
         constexpr static std::array<std::uint8_t, 1> N_size_vec{3};
