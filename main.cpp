@@ -1,36 +1,30 @@
-#include <iostream>
-#include <vector>
-#include <thread>
-#include <string>
-#include <cstdlib>
-#include <string_view>
-#include <filesystem>
 #include <coroutine>
+#include <cstdlib>
+#include <ctime>
+#include <filesystem>
 #include <future>
 #include <iomanip>
-#include <ctime>
+#include <iostream>
+#include <string>
+#include <string_view>
+#include <thread>
+#include <vector>
 
 #include "config.hpp"
-#include "system.hpp"
 #include "output.hpp"
 #include "stat.hpp"
+#include "system.hpp"
 
-typename task::config_t
-calculation(typename task::config_t config,
-            std::string_view current_dir)
+typename task::config_t calculation(typename task::config_t config, std::string_view current_dir)
 {
     using task::base_config;
     outputer_t outputer{config, current_dir};
     outputer.createDirectoriesAndEnter(task::createName(config));
 
     auto m_out = outputer.createFile("m");
-    m_out.printLn(
-             "m1", "m1x", "m1y", "m1z",
-             "m2", "m2x", "m2y", "m2z")
-        .printLn("mcs/s");
+    m_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z").printLn("mcs/s");
     auto j_out = outputer.createFile("j");
-    j_out.printLn("j_up", "j_down")
-        .printLn("mcs/s");
+    j_out.printLn("j_up", "j_down").printLn("mcs/s");
 
     auto sample = task::createSample(config);
     task::prepare(sample);
@@ -42,24 +36,20 @@ calculation(typename task::config_t config,
     {
         if (mcs == base_config::t_wait_vec.front())
         {
-            const auto [up, down] =
-                sample.startObservation();
+            const auto [up, down] = sample.startObservation();
             j_up += up;
             j_down += down;
         }
         if (mcs > base_config::t_wait_vec.front())
         {
-            const auto [up, down] =
-                sample.makeJCalc();
+            const auto [up, down] = sample.makeJCalc();
             j_up += up;
             j_down += down;
         }
         j_out.printLn(mcs, j_up, j_down);
 
         const auto [magn1, magn2] = sample.makeMonteCarloStep();
-        m_out.printLn(mcs,
-                      abs(magn1), magn1,
-                      abs(magn2), magn2);
+        m_out.printLn(mcs, abs(magn1), magn1, abs(magn2), magn2);
     }
     return config;
 }
@@ -99,7 +89,8 @@ int main(int argc, char *argv[])
     const auto init_dir = std::filesystem::current_path() / results_folder / time;
     {
         std::ofstream info{"info.txt"};
-        info << init_dir << "\t" << raw_data_folder;
+        info << init_dir << "\t" << raw_data_folder << "\n";
+        info << task::create_config_info();
         info.flush();
         info.close();
     }

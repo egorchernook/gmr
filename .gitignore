@@ -41,3 +41,7 @@ stat
 __main.cpp
 
 .vscode
+
+bin
+
+.clang-format
