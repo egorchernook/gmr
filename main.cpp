@@ -31,7 +31,7 @@ typename task::config_t calculation(typename task::config_t config, std::string_
 
     double j_up{};
     double j_down{};
-    constexpr auto mcs_amount = base_config::mcs_observation + base_config::t_wait_vec::back();
+    constexpr auto mcs_amount = base_config::mcs_observation + base_config::t_wait_vec.back();
     for (auto mcs = 0u; mcs < mcs_amount; ++mcs)
     {
         if (mcs == base_config::t_wait_vec.front())

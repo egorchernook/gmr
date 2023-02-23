@@ -92,13 +92,7 @@ struct base_config
     }
 };
 
-template <typename Iter>
-requires requires(typename Iter::value_type value) {
-             {
-                 to_string(value)
-                 } -> std::convertible_to<std::string>;
-         }
-inline std::string values_as_string(Iter first, Iter last)
+template <typename Iter> inline std::string values_as_string(Iter first, Iter last)
 {
     using std::to_string;
     std::string res{};
@@ -115,18 +109,25 @@ inline std::string create_config_info()
     std::ostringstream stream{};
     stream << "base_config : \n[\n\t stat_amount : " << base_config::stat_amount
            << "\n\t mcs_init : " << base_config::mcs_init << "\n\t mcs_observation : " << base_config::mcs_observation
-           << "\n\t N_size_vec : ["
-           << values_as_string(base_config::N_size_vec::begin(), base_config::N_size_vec::end())
+           << "\n\t N_size_vec : [" << values_as_string(base_config::N_size_vec.begin(), base_config::N_size_vec.end())
            << "]\n\t T_creation_vec : ["
-           << values_as_string(base_config::T_creation_vec::begin(), base_config::T_creation_vec::end())
+           << values_as_string(base_config::T_creation_vec.begin(), base_config::T_creation_vec.end())
            << "]\n\t T_sample_vec : ["
-           << values_as_string(base_config::T_sample_vec::begin(), base_config::T_sample_vec::end())
-           << "]\n\t t_wait_vec : ["
-           << values_as_string(base_config::t_wait_vec::begin(), base_config::t_wait_vec::end())
+           << values_as_string(base_config::T_sample_vec.begin(), base_config::T_sample_vec.end())
+           << "]\n\t t_wait_vec : [" << values_as_string(base_config::t_wait_vec.begin(), base_config::t_wait_vec.end())
            << "]\n\t magn_field_vec : ["
-           << values_as_string(base_config::magn_field_vec::begin(), base_config::magn_field_vec::end()) << "]\n]";
+           << values_as_string(base_config::magn_field_vec.begin(), base_config::magn_field_vec.end()) << "]\n]";
     return stream.str();
 }
+
+struct config_t
+{
+    const std::uint16_t stat_id;
+    const std::uint8_t N;
+    const double T_creation;
+    const double T_sample;
+    const typename base_config::spin_t::magn_t field;
+};
 
 inline std::string createName(const config_t &config) noexcept
 {
