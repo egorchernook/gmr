@@ -22,9 +22,9 @@ typename task::config_t calculation(typename task::config_t config, std::string_
     outputer.createDirectoriesAndEnter(task::createName(config));
 
     auto m_out = outputer.createFile("m");
-    m_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z").printLn("mcs/s");
+    m_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z");
     auto j_out = outputer.createFile("j");
-    j_out.printLn("j_up", "j_down").printLn("mcs/s");
+    j_out.printLn("j_up", "j_down");
 
     auto sample = task::createSample(config);
     task::prepare(sample);
@@ -46,10 +46,10 @@ typename task::config_t calculation(typename task::config_t config, std::string_
             j_up += up;
             j_down += down;
         }
-        j_out.printLn(mcs, j_up, j_down);
+        j_out.printLn(j_up, j_down);
 
         const auto [magn1, magn2] = sample.makeMonteCarloStep();
-        m_out.printLn(mcs, abs(magn1), magn1, abs(magn2), magn2);
+        m_out.printLn(abs(magn1), magn1, abs(magn2), magn2);
     }
     return config;
 }
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     const auto init_dir = std::filesystem::current_path() / results_folder / time;
     {
         std::ofstream info{"info.txt"};
-        info << init_dir << "\t" << raw_data_folder << "\n";
+        info << init_dir.string() << "\t" << raw_data_folder << "\n";
         info << task::create_config_info();
         info.flush();
         info.close();

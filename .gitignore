@@ -44,4 +44,8 @@ __main.cpp
 
 bin
 
+only_stat
+
+info.txt
+
 .clang-format

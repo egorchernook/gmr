@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <exception>
 #include <execution>
 #include <filesystem>
 #include <fstream>
@@ -18,7 +19,7 @@ struct stater
     {
         const static std::string stat_folder = "processed";
 
-        const auto data_folder = prepare_folder(path_to_result_folder, raw_data_folder, stat_folder);
+        prepare_folder(path_to_result_folder, raw_data_folder, stat_folder);
 
         auto init_configs = task::base_config::getConfigs();
         std::vector<task::config_t> configs{};
@@ -34,8 +35,7 @@ struct stater
         {
             namespace fs = std::filesystem;
             const auto folder_name = task::createName(config);
-            const auto path_to_file = data_folder / stat_folder / folder_name;
-            fs::current_path(path_to_file);
+            const auto path_to_file = path_to_result_folder / raw_data_folder / folder_name;
 
             for (auto idx = 0u; idx < input_streams.size(); ++idx)
             {
@@ -45,12 +45,13 @@ struct stater
             const auto init_head = remove_heads(input_streams.begin(), input_streams.end());
 
             auto is_end = [&input_streams]() noexcept -> bool {
-                bool res = true;
+                bool res = false;
                 std::ranges::for_each(input_streams.begin(), input_streams.end(),
                                       [&res](auto &elem) noexcept -> void { res += elem.eof(); });
                 return res;
             };
 
+            fs::current_path(path_to_result_folder / stat_folder / folder_name);
             std::ofstream out{"m.txt"};
             {
                 std::istringstream init_head_stream{init_head};
@@ -58,6 +59,7 @@ struct stater
                 {
                     out << elem << "\t\t";
                 }
+                out << "\n";
             }
 
             while (!is_end())
@@ -90,6 +92,7 @@ struct stater
                 {
                     out << average[idx] << "\t" << err[idx] << "\t";
                 }
+                out << "\n";
             }
             out.flush();
             out.close();
@@ -151,13 +154,12 @@ struct stater
                                     std::array<std::ifstream, task::base_config::stat_amount>::iterator end) noexcept
     {
         std::string ret_val{};
-        for (int _ = 0; _ < 2; ++_)
-        {
-            std::string line{};
-            std::for_each(std::execution::par_unseq, begin, end,
-                          [&ret_val, &line](auto &elem) mutable noexcept -> void { std::getline(elem, line); });
-            ret_val += line;
-        }
+
+        std::string line{};
+        std::for_each(std::execution::par_unseq, begin, end,
+                      [&ret_val, &line](auto &elem) mutable noexcept -> void { std::getline(elem, line); });
+        ret_val += line;
+
         return ret_val;
     }
 
@@ -166,18 +168,16 @@ struct stater
     {
         namespace fs = std::filesystem;
         fs::current_path(path_to_result_folder);
-        const auto data_folder = fs::current_path();
 
         if (!fs::exists(stat_folder))
         {
             fs::create_directory(stat_folder);
         }
 
-        fs::copy(path_to_result_folder / raw_data_folder, fs::current_path() / stat_folder,
-                 fs::copy_options::recursive & fs::copy_options::directories_only);
-        fs::current_path(fs::current_path() / stat_folder);
+        fs::copy(path_to_result_folder / raw_data_folder, path_to_result_folder / stat_folder,
+                 fs::copy_options::recursive | fs::copy_options::directories_only);
 
-        return data_folder;
+        return path_to_result_folder;
     }
 };
 } // namespace stat

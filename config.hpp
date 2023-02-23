@@ -100,6 +100,7 @@ template <typename Iter> inline std::string values_as_string(Iter first, Iter la
     {
         res += to_string(*first);
         first++;
+        res += first != last ? "," : "";
     }
     return res;
 }
