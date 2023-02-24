@@ -66,14 +66,12 @@ struct stater
 
             fs::current_path(path_to_result_folder / stat_folder / folder_name);
             std::cout << "\t" << fs::current_path().string() << "/" << name << " file stat begins\n";
-            auto size = 0u;
             std::ofstream out{name + ".txt"};
             {
                 std::istringstream init_head_stream{init_head};
                 for (std::string elem; std::getline(init_head_stream, elem, '\t');)
                 {
                     out << elem << "\t\t";
-                    size++;
                 }
                 out << "\n";
             }
@@ -156,7 +154,6 @@ struct stater
                     }
                     buf_line.push_back(value);
                 }
-                std::cout << buf_line << "\n";
                 buf[idx] = std::make_optional(buf_line);
             }
             else
@@ -164,7 +161,6 @@ struct stater
                 buf[idx] = {};
             }
         }
-        std::cout << "\n";
     }
 
     static std::string remove_heads(std::array<std::ifstream, task::base_config::stat_amount>::iterator begin,
