@@ -15,7 +15,8 @@
 #include "stat.hpp"
 #include "system.hpp"
 
-typename task::config_t calculation(typename task::config_t config, std::string_view current_dir)
+typename task::base_config::config_t calculation(typename task::base_config::config_t config,
+                                                 std::string_view current_dir)
 {
     using task::base_config;
     outputer_t outputer{config, current_dir};
@@ -45,8 +46,8 @@ typename task::config_t calculation(typename task::config_t config, std::string_
             const auto [up, down] = sample.makeJCalc();
             j_up += up;
             j_down += down;
+            j_out.printLn(j_up, j_down);
         }
-        j_out.printLn(j_up, j_down);
 
         const auto [magn1, magn2] = sample.makeMonteCarloStep();
         m_out.printLn(abs(magn1), magn1, abs(magn2), magn2);
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
     }
     std::cout << "threads_amount = " << threads_amount << "\n";
 
-    std::vector<std::future<typename task::config_t>> vec(threads_amount - 1);
+    std::vector<std::future<typename task::base_config::config_t>> vec(threads_amount - 1);
 
     const auto init_dir = std::filesystem::current_path() / results_folder / time;
     {

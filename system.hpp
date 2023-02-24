@@ -21,10 +21,10 @@ struct sample_t
     qss::spin_transport::nanostructure_type<qss::lattices::three_d::fcc, typename qss::spin_transport::proxy_spin>
         proxy_lattice;
 
-    const config_t config;
+    const base_config::config_t config;
     const typename decltype(std::function{base_config::createHamilton_f})::result_type hamilt;
 
-    sample_t(lattice_t &&lattice_, n_lattice_t &&n_up_, n_lattice_t &&n_down_, const config_t &config_)
+    sample_t(lattice_t &&lattice_, n_lattice_t &&n_up_, n_lattice_t &&n_down_, const base_config::config_t &config_)
         : lattice{lattice_}, n_up{n_up_}, n_down{n_down_},
           proxy_lattice{qss::algorithms::spin_transport::prepare_proxy_structure<'x'>(lattice, n_up, n_down)},
           config{config_}, hamilt{base_config::createHamilton_f(config.field, base_config::getDelta(config.N))}
@@ -75,7 +75,7 @@ struct sample_t
 };
 
 // создаёт решётку при температуре T = 0
-sample_t createSample(const config_t &config) noexcept
+inline sample_t createSample(const base_config::config_t &config) noexcept
 {
     const typename base_config::sizes_t sizes{base_config::L, base_config::L, config.N};
     const typename base_config::spin_t plus{1.0, 0.0, 0.0};
@@ -97,7 +97,7 @@ sample_t createSample(const config_t &config) noexcept
 }
 
 // готовит образец до температуры T_creation
-void prepare(sample_t &sam)
+inline void prepare(sample_t &sam)
 {
     const auto config = sam.config;
     sam.lattice.T = config.T_creation;

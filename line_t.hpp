@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <execution>
+#include <fstream>
 #include <vector>
 
 namespace stat
@@ -21,9 +22,12 @@ struct line_t final : private std::vector<double>
 
     using data_t::push_back;
     using data_t::operator[];
+    using data_t::clear;
+    using data_t::size;
 
     line_t() : data_t{}
     {
+        this->reserve(10);
     }
 
     line_t &operator+=(const line_t &other) noexcept
@@ -83,6 +87,21 @@ inline line_t sqr(line_t value)
     std::for_each(std::execution::par_unseq, value.begin(), value.end(),
                   [](auto &elem) noexcept -> void { elem *= elem; });
     return value;
+}
+inline std::ostream &operator<<(std::ostream &out, const line_t &line) noexcept
+{
+    out << "line : [ ";
+    for (auto iter = line.begin(); iter != line.end(); ++iter)
+    {
+        const auto value = *iter;
+        out << value;
+        if (iter + 1 != line.end())
+        {
+            out << ", ";
+        }
+    }
+    out << "]";
+    return out;
 }
 } // namespace stat
 #endif

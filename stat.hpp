@@ -15,14 +15,15 @@ namespace stat
 {
 struct stater
 {
+    constexpr static std::string_view stat_folder{"processed"};
     static void makeStat(std::filesystem::path path_to_result_folder, std::string_view raw_data_folder)
     {
-        const static std::string stat_folder = "processed";
-
-        prepare_folder(path_to_result_folder, raw_data_folder, stat_folder);
+        std::cout << "Stat calculations begins"
+                  << "\n";
+        prepare_folder(path_to_result_folder, raw_data_folder);
 
         auto init_configs = task::base_config::getConfigs();
-        std::vector<task::config_t> configs{};
+        std::vector<task::base_config::config_t> configs{};
         for (auto &&elem : init_configs)
         {
             if (elem.stat_id == 0)
@@ -30,6 +31,18 @@ struct stater
                 configs.push_back(std::move(elem));
             }
         }
+        create_stat("m", configs, path_to_result_folder, raw_data_folder);
+        create_stat("j", configs, path_to_result_folder, raw_data_folder);
+    }
+
+  private:
+    static std::string create_file_name(const std::string &base_name, const std::size_t id)
+    {
+        return {base_name + "_id=" + std::to_string(id) + ".txt"};
+    }
+    static void create_stat(std::string &&name, const std::vector<task::base_config::config_t> &configs,
+                            std::filesystem::path path_to_result_folder, std::string_view raw_data_folder)
+    {
         std::array<std::ifstream, task::base_config::stat_amount> input_streams;
         for (const auto &config : configs)
         {
@@ -39,7 +52,7 @@ struct stater
 
             for (auto idx = 0u; idx < input_streams.size(); ++idx)
             {
-                input_streams[idx] = std::ifstream(path_to_file / ("m_id=" + std::to_string(idx) + ".txt"));
+                input_streams[idx] = std::ifstream(path_to_file / create_file_name(name, idx));
             }
 
             const auto init_head = remove_heads(input_streams.begin(), input_streams.end());
@@ -52,23 +65,27 @@ struct stater
             };
 
             fs::current_path(path_to_result_folder / stat_folder / folder_name);
-            std::ofstream out{"m.txt"};
+            std::cout << "\t" << fs::current_path().string() << "/" << name << " file stat begins\n";
+            auto size = 0u;
+            std::ofstream out{name + ".txt"};
             {
                 std::istringstream init_head_stream{init_head};
                 for (std::string elem; std::getline(init_head_stream, elem, '\t');)
                 {
                     out << elem << "\t\t";
+                    size++;
                 }
                 out << "\n";
             }
 
+            std::array<std::optional<line_t>, input_streams.size()> buf{};
             while (!is_end())
             {
-                const auto values = get_values_from_streams(input_streams.begin(), input_streams.end());
+                get_values_from_streams(input_streams.begin(), input_streams.end(), buf);
 
                 line_t average{};
                 auto amount = 0u;
-                for (const auto &elem : values)
+                for (const auto &elem : buf)
                 {
                     if (elem)
                     {
@@ -77,9 +94,8 @@ struct stater
                     }
                 }
                 average /= amount;
-
                 line_t err{};
-                for (const auto &elem : values)
+                for (const auto &elem : buf)
                 {
                     if (elem)
                     {
@@ -88,7 +104,7 @@ struct stater
                 }
                 err /= amount;
 
-                for (auto idx = 0u; idx < amount; ++idx)
+                for (auto idx = 0u; idx < average.size(); ++idx)
                 {
                     out << average[idx] << "\t" << err[idx] << "\t";
                 }
@@ -96,27 +112,28 @@ struct stater
             }
             out.flush();
             out.close();
+
+            std::cout << "\t" << fs::current_path().string() << "/" << name << " file stat ends\n";
         }
     }
 
-  private:
-    static std::array<std::optional<line_t>, task::base_config::stat_amount> get_values_from_streams(
-        std::array<std::ifstream, task::base_config::stat_amount>::iterator first,
-        std::array<std::ifstream, task::base_config::stat_amount>::iterator last) noexcept
+    static void get_values_from_streams(std::array<std::ifstream, task::base_config::stat_amount>::iterator first,
+                                        std::array<std::ifstream, task::base_config::stat_amount>::iterator last,
+                                        std::array<std::optional<line_t>, task::base_config::stat_amount> &buf) noexcept
     {
-        std::array<std::optional<line_t>, task::base_config::stat_amount> result{};
+        static line_t buf_line{};
         for (auto idx = 0u; first != last; ++first, ++idx)
         {
             if (!first->eof())
             {
-                line_t result_line{};
+                buf_line.clear();
                 std::string line{};
                 std::getline(*first, line);
 
                 std::istringstream stream{line};
                 for (std::string data; std::getline(stream, data, '\t');)
                 {
-                    double value;
+                    double value{};
                     try
                     {
                         value = std::stod(data);
@@ -124,7 +141,7 @@ struct stater
                     catch (std::out_of_range &exc)
                     {
                         value = std::numeric_limits<double>::max();
-                        fprintf(stderr,
+                        fprintf(stdout,
                                 "The std::out_of_range[%s] appears when trying to make "
                                 "std::stod on data from file with id = %d\n",
                                 exc.what(), idx);
@@ -132,22 +149,22 @@ struct stater
                     catch (std::invalid_argument &exc)
                     {
                         value = 0.0;
-                        fprintf(stderr,
+                        fprintf(stdout,
                                 "The std::invalid_argument[%s] appears when trying to make "
                                 "std::stod on data from file with id = %d\n",
                                 exc.what(), idx);
                     }
-                    result_line.push_back(value);
-                    result[idx] = result_line;
+                    buf_line.push_back(value);
                 }
+                std::cout << buf_line << "\n";
+                buf[idx] = std::make_optional(buf_line);
             }
             else
             {
-                result[idx] = {};
+                buf[idx] = {};
             }
         }
-
-        return result;
+        std::cout << "\n";
     }
 
     static std::string remove_heads(std::array<std::ifstream, task::base_config::stat_amount>::iterator begin,
@@ -157,14 +174,14 @@ struct stater
 
         std::string line{};
         std::for_each(std::execution::par_unseq, begin, end,
-                      [&ret_val, &line](auto &elem) mutable noexcept -> void { std::getline(elem, line); });
+                      [&line](auto &elem) mutable noexcept -> void { std::getline(elem, line); });
         ret_val += line;
 
         return ret_val;
     }
 
     static std::filesystem::path prepare_folder(std::filesystem::path path_to_result_folder,
-                                                std::string_view raw_data_folder, std::string_view stat_folder) noexcept
+                                                std::string_view raw_data_folder) noexcept
     {
         namespace fs = std::filesystem;
         fs::current_path(path_to_result_folder);

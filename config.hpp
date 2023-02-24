@@ -22,7 +22,6 @@
 
 namespace task
 {
-struct config_t;
 struct base_config
 {
     using spin_t = qss::heisenberg::spin;
@@ -30,6 +29,21 @@ struct base_config
     using sizes_t = qss::lattices::three_d::sizes_t;
     using ed_t = qss::electron_dencity;
     using electron_dencity_t = qss::lattices::three_d::fcc<ed_t>;
+
+    struct config_t
+    {
+        const std::uint16_t stat_id;
+        const std::uint8_t N;
+        const double T_creation;
+        const double T_sample;
+        const typename base_config::spin_t::magn_t field;
+
+        config_t(std::uint16_t stat_id_, std::uint8_t N_, double T_creation_, double T_sample_,
+                 typename base_config::spin_t::magn_t field_)
+            : stat_id{stat_id_}, N{N_}, T_creation{T_creation_}, T_sample{T_sample_}, field{field_}
+        {
+        }
+    };
 
     base_config() = delete;
     // линейный размер
@@ -121,16 +135,7 @@ inline std::string create_config_info()
     return stream.str();
 }
 
-struct config_t
-{
-    const std::uint16_t stat_id;
-    const std::uint8_t N;
-    const double T_creation;
-    const double T_sample;
-    const typename base_config::spin_t::magn_t field;
-};
-
-inline std::string createName(const config_t &config) noexcept
+inline std::string createName(const base_config::config_t &config) noexcept
 {
     using std::to_string;
     std::ostringstream stream{};
@@ -139,7 +144,7 @@ inline std::string createName(const config_t &config) noexcept
     return stream.str();
 }
 
-inline std::ostream &operator<<(std::ostream &out, const config_t &data) noexcept
+inline std::ostream &operator<<(std::ostream &out, const base_config::config_t &data) noexcept
 {
     using std::to_string;
     out << "[ "

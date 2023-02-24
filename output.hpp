@@ -42,7 +42,7 @@ class outputer_t
         return stream.str();
     }
 
-    outputer_t(const typename task::config_t &config, std::string_view current_dir)
+    outputer_t(const typename task::base_config::config_t &config, std::string_view current_dir)
         : folder{current_dir}, id{config.stat_id}
     {
         std::filesystem::current_path(current_dir);
