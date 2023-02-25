@@ -5,6 +5,7 @@
 #include <future>
 #include <iomanip>
 #include <iostream>
+#include <queue>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -32,7 +33,52 @@ typename task::base_config::config_t calculation(typename task::base_config::con
 
     double j_up{};
     double j_down{};
+    base_config::spin_t::magn_t magn_fst_average{};
+    base_config::spin_t::magn_t magn_snd_average{};
     constexpr auto mcs_amount = base_config::mcs_observation + base_config::t_wait_vec.back();
+
+    {
+        constexpr auto queue_size = 500u;
+        std::queue<std::array<base_config::spin_t::magn_t, 2u>> queue{};
+        for (auto mcs = 0u; mcs < queue_size; ++mcs)
+        {
+            const auto magns = sample.makeMonteCarloStep();
+            queue.push(magns);
+            magn_fst_average += magns[0];
+            magn_snd_average += magns[1];
+        }
+        const auto size_as_double = static_cast<double>(queue.size());
+        magn_fst_average /= size_as_double;
+        magn_snd_average /= size_as_double;
+        const auto eps = 10.0 / (base_config::L * base_config::L * config.N);
+        auto mcs_on_dynamic_stage = queue_size;
+        for (auto _ = 0u; _ < 10'000; ++_)
+        {
+            const auto [magn1, magn2] = sample.makeMonteCarloStep();
+            m_out.printLn(abs(magn1), magn1, abs(magn2), magn2);
+
+            const auto elem_to_pop = queue.front();
+            magn_fst_average -= elem_to_pop[0] / size_as_double;
+            magn_snd_average -= elem_to_pop[1] / size_as_double;
+
+            magn_fst_average += magn1 / size_as_double;
+            magn_snd_average += magn2 / size_as_double;
+
+            queue.pop();
+            queue.push({magn1, magn2});
+
+            if (is_almost_equals(magn_fst_average, magn1, eps) && is_almost_equals(magn_snd_average, magn2, eps))
+            {
+                mcs_on_dynamic_stage += _;
+                break;
+            }
+        };
+
+        {
+            auto info_out = outputer.createFile("info");
+            info_out.printLn("Dynamic stage duration : ", std::to_string(mcs_on_dynamic_stage), "MCS/s");
+        }
+    }
     for (auto mcs = 0u; mcs < mcs_amount; ++mcs)
     {
         if (mcs == base_config::t_wait_vec.front())

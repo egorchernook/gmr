@@ -1,9 +1,11 @@
 #ifndef SYSTEM_HPP_INCLUDED
 #define SYSTEM_HPP_INCLUDED
 
+#include <array>
 #include <functional>
 #include <type_traits>
 #include <utility>
+
 
 #include "config.hpp"
 
@@ -31,16 +33,16 @@ struct sample_t
     {
     }
 
-    std::pair<typename base_config::spin_t::magn_t, typename base_config::spin_t::magn_t> makeMonteCarloStep()
+    std::array<typename base_config::spin_t::magn_t, 2> makeMonteCarloStep()
     {
         lattice.T = config.T_sample;
         lattice.evolve(hamilt);
         const auto magn1 = lattice.magns[0];
         const auto magn2 = lattice.magns[1];
 
-        return std::pair{magn1, magn2};
+        return {magn1, magn2};
     }
-    std::pair<double, double> startObservation()
+    std::array<double, 2> startObservation()
     {
         proxy_lattice.T = config.T_sample;
         const auto temp_magn1 = abs(lattice.magns[0]);
@@ -58,7 +60,7 @@ struct sample_t
         constexpr auto area = base_config::L * base_config::L;
         return {j_up / area, j_down / area};
     }
-    std::pair<double, double> makeJCalc()
+    std::array<double, 2> makeJCalc()
     {
         const auto temp_magn1 = abs(lattice.magns[0]);
         const auto temp_magn2 = -abs(lattice.magns[1]);
