@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
             if (iter != configs.end())
             {
                 const auto config = *iter;
-                vec[id] = std::async(std::launch::async, task::calculation, config, currentDir);
+                vec[id] = std::async(std::launch::async, task::calculation, config,
+                                     currentDir); // TODO: не использовать std::async
                 iter++;
             }
         }
