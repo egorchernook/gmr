@@ -58,12 +58,11 @@ struct base_config
     constexpr static std::uint16_t stat_amount = 5; // количество статистических прогонок
     constexpr static std::uint64_t mcs_init = 500;
     constexpr static std::uint64_t mcs_observation = 1'000;
-    constexpr static std::array<std::uint8_t, 1> N_size_vec{3};
-    constexpr static std::array<double, 1> T_creation_vec{0.67};
-    constexpr static std::array<double, 1> T_sample_vec{0.95};
-    constexpr static std::array<std::uint32_t, 4> t_wait_vec{100, 200, 400,
-                                                             1000}; // должен быть отсортирован по увеличению
-    constexpr static std::array<typename spin_t::magn_t, 1> magn_field_vec{typename spin_t::magn_t{0.0, 0.0, 0.0}}; /*,
+    constexpr static std::array N_size_vec{3u};
+    constexpr static std::array T_creation_vec{0.67};
+    constexpr static std::array T_sample_vec{0.95};
+    constexpr static std::array t_wait_vec{100u, 200u, 400u, 1000u}; // должен быть отсортирован по увеличению
+    constexpr static std::array magn_field_vec{typename spin_t::magn_t{0.0, 0.0, 0.0}}; /*,
                                                                             typename spin_t::magn_t{0.0, 0.0, 0.1},
                                                                             typename spin_t::magn_t{0.0, 0.0, 0.5},
                                                                             typename spin_t::magn_t{0.0, 0.0, 1.0},
