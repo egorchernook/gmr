@@ -58,17 +58,50 @@ struct stater
         {
             const auto folder_name = task::createName(config);
             std::filesystem::current_path(path_to_result_folder / stat_folder / folder_name);
-            std::array j_file = {std::ifstream{std::filesystem::current_path()}};
-            remove_heads(j_file.begin(), j_file.end());
-            auto is_end = [&j_file]() noexcept -> bool {
-                bool res = false;
-                std::ranges::for_each(j_file.begin(), j_file.end(),
-                                      [&res](auto &elem) noexcept -> void { res += elem.eof(); });
-                return res;
-            };
-            std::array<double, task::base_config::t_wait_vec.size()> GMR_tw{};
-
             std::ofstream out{"GMR.txt"};
+            auto j_file = std::ifstream{std::filesystem::current_path()};
+            {
+                std::string line{};
+                std::getline(j_file, line);
+                out << line;
+            }
+            std::array<double, task::base_config::t_wait_vec.size()> GMR_tw{};
+            std::array<line_t, task::base_config::t_wait_vec.back()> buf{};
+            
+            {
+                auto line_idx = 0u;
+                while(line_idx < buf.size() && !j_file.eof()) {
+                
+                std::string line{};
+                std::getline(j_file, line);
+                std::istringstream stream{line};
+                for (std::string data; std::getline(stream, data, '\t');)
+                {
+                    double value{};
+                    try
+                    {
+                        value = std::stod(data);
+                    }
+                    catch (std::out_of_range &exc)
+                    {
+                        value = std::numeric_limits<double>::max();
+                        fprintf(stdout,
+                                "The std::out_of_range[%s] appears when trying to make "
+                                "std::stod on data from file j_file\n",
+                                exc.what());
+                    }
+                    catch (std::invalid_argument &exc)
+                    {
+                        value = 0.0;
+                        fprintf(stdout,
+                                "The std::invalid_argument[%s] appears when trying to make "
+                                "std::stod on data from file j_file\n",
+                                exc.what());
+                    }
+                    buf[line_idx].push_back(value);
+                }  
+            }
+            }
 
             out.flush();
             out.close();
