@@ -1,13 +1,13 @@
 #ifndef OUTPUT_HPP_INCLUDED
 #define OUTPUT_HPP_INCLUDED
 
-#include <string>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include <string_view>
 #include <type_traits>
-#include <array>
 
 #include "config.hpp"
 
@@ -16,7 +16,7 @@ class outputer_t
     std::filesystem::path folder;
     const int id;
 
-public:
+  public:
     static std::string createName(std::string_view text, auto &&value_var) noexcept
     {
         std::ostringstream stream{};
@@ -42,7 +42,7 @@ public:
         return stream.str();
     }
 
-    outputer_t(const typename task::config_t &config, std::string_view current_dir)
+    outputer_t(const typename task::base_config::config_t &config, std::string_view current_dir)
         : folder{current_dir}, id{config.stat_id}
     {
         std::filesystem::current_path(current_dir);
@@ -71,51 +71,45 @@ public:
     {
         std::ofstream out;
 
-    public:
+      public:
         output_file_t() = delete;
         output_file_t(std::ofstream &&out_) : out{std::move(out_)} {};
         output_file_t(const std::ofstream &out_) = delete;
         output_file_t &operator=(const std::ofstream &out_) = delete;
 
         // агрументы разделяются \t
-        template <typename... Args>
-        output_file_t &printLn(Args &...args) noexcept
+        template <typename... Args> output_file_t &printLn(Args &...args) noexcept
         {
             ((out << std::forward<Args>(args) << "\t"), ...);
             out << "\n";
             return *this;
         }
-        template <typename... Args>
-        output_file_t &printLn(Args &&...args) noexcept
+        template <typename... Args> output_file_t &printLn(Args &&...args) noexcept
         {
             ((out << std::forward<Args>(args) << "\t"), ...);
             out << "\n";
             return *this;
         }
 
-        template <typename Head, typename... Args>
-        output_file_t &print(Head &fst, Args &...args) noexcept
+        template <typename Head, typename... Args> output_file_t &print(Head &fst, Args &...args) noexcept
         {
             out << fst;
             ((out << "\t" << std::forward<Args>(args)), ...);
             return *this;
         }
-        template <typename Head, typename... Args>
-        output_file_t &print(Head &&fst, Args &...args) noexcept
+        template <typename Head, typename... Args> output_file_t &print(Head &&fst, Args &...args) noexcept
         {
             out << fst;
             ((out << "\t" << std::forward<Args>(args)), ...);
             return *this;
         }
-        template <typename Head, typename... Args>
-        output_file_t &print(Head &fst, Args &&...args) noexcept
+        template <typename Head, typename... Args> output_file_t &print(Head &fst, Args &&...args) noexcept
         {
             out << fst;
             ((out << "\t" << std::forward<Args>(args)), ...);
             return *this;
         }
-        template <typename Head, typename... Args>
-        output_file_t &print(Head &&fst, Args &&...args) noexcept
+        template <typename Head, typename... Args> output_file_t &print(Head &&fst, Args &&...args) noexcept
         {
             out << fst;
             ((out << "\t" << std::forward<Args>(args)), ...);

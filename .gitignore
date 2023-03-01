@@ -43,3 +43,11 @@ stat
 __main.cpp
 
 .vscode
+
+bin
+
+only_stat
+
+info.txt
+
+.clang-format
