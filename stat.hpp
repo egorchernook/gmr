@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cstdio>
 #include <exception>
 #include <execution>
 #include <filesystem>
@@ -16,6 +17,7 @@ namespace stat
 struct stater
 {
     constexpr static std::string_view stat_folder{"processed"};
+
     static void makeStat(std::filesystem::path path_to_result_folder, std::string_view raw_data_folder)
     {
         std::cout << "Stat calculations begins"
@@ -35,6 +37,43 @@ struct stater
         create_stat("j", configs, path_to_result_folder, raw_data_folder);
 
         std::cout << "Stat calculations ends"
+                  << "\n";
+    }
+
+    static void calcGMR(std::filesystem::path path_to_result_folder)
+    {
+        std::cout << "GMR calculations begins"
+                  << "\n";
+
+        auto init_configs = task::base_config::getConfigs();
+        std::vector<task::base_config::config_t> configs{};
+        for (auto &&elem : init_configs)
+        {
+            if (elem.stat_id == 0)
+            {
+                configs.push_back(std::move(elem));
+            }
+        }
+        for (const auto &config : configs)
+        {
+            const auto folder_name = task::createName(config);
+            std::filesystem::current_path(path_to_result_folder / stat_folder / folder_name);
+            std::array j_file = {std::ifstream{std::filesystem::current_path()}};
+            remove_heads(j_file.begin(), j_file.end());
+            auto is_end = [&j_file]() noexcept -> bool {
+                bool res = false;
+                std::ranges::for_each(j_file.begin(), j_file.end(),
+                                      [&res](auto &elem) noexcept -> void { res += elem.eof(); });
+                return res;
+            };
+            std::array<double, task::base_config::t_wait_vec.size()> GMR_tw{};
+
+            std::ofstream out{"GMR.txt"};
+
+            out.flush();
+            out.close();
+        }
+        std::cout << "GMR calculations ends"
                   << "\n";
     }
 
