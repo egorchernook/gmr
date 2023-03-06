@@ -49,29 +49,101 @@ struct stater
         std::vector<task::base_config::config_t> configs{};
         for (auto &&elem : init_configs)
         {
-            if (elem.stat_id == 0)
+            if (elem.stat_id == 0 && !is_almost_equals(elem.field, {0.0, 0.0, 0.0}))
             {
                 configs.push_back(std::move(elem));
             }
         }
         for (const auto &config : configs)
         {
+            task::base_config::config_t config_0{
+                config.stat_id, config.N, config.T_creation, config.T_sample, {0.0, 0.0, 0.0}};
             const auto folder_name = task::createName(config);
             std::filesystem::current_path(path_to_result_folder / stat_folder / folder_name);
-            std::array j_file = {std::ifstream{std::filesystem::current_path()}};
-            remove_heads(j_file.begin(), j_file.end());
-            auto is_end = [&j_file]() noexcept -> bool {
-                bool res = false;
-                std::ranges::for_each(j_file.begin(), j_file.end(),
-                                      [&res](auto &elem) noexcept -> void { res += elem.eof(); });
-                return res;
-            };
-            std::array<double, task::base_config::t_wait_vec.size()> GMR_tw{};
+            auto j_file = std::ifstream{std::filesystem::current_path()};
+            auto j_file_0 = std::ifstream{path_to_result_folder / stat_folder / task::createName(config_0)};
+            {
+                std::string j_file_head{};
+                std::getline(j_file, j_file_head);
+                std::getline(j_file_0, j_file_head);
+            }
 
-            std::ofstream out{"GMR.txt"};
+            std::array<std::ofstream, task::base_config::t_wait_vec.size()> outers{};
+            for (auto tw_counter = 0u; tw_counter < task::base_config::t_wait_vec.size(); ++tw_counter)
+            {
+                outers[tw_counter].open("GMR_tw=" + std::to_string(task::base_config::t_wait_vec[tw_counter]) + ".txt");
+                outers[tw_counter] << "GMR_h_lower_hc\t\tGMR_h_upper_hc\t\n";
+            }
+            auto t_minus_tw_counter = 0u;
+            while (!j_file.eof() && !j_file_0.eof())
+            {
+                std::string line{};
+                std::getline(j_file, line);
+                std::istringstream stream1{line};
+                const auto j_line = get_double_line(stream1);
+                auto j_up = j_line[0];
+                auto j_up_err = j_line[1];
+                auto j_down = j_line[2];
+                auto j_down_err = j_line[3];
 
-            out.flush();
-            out.close();
+                std::getline(j_file_0, line);
+                std::istringstream stream2{line};
+                const auto j_line_0 = get_double_line(stream2);
+                auto j_up_0 = j_line_0[0];
+                auto j_up_err_0 = j_line_0[1];
+                auto j_down_0 = j_line_0[2];
+                auto j_down_err_0 = j_line_0[3];
+
+                double GMR_h_lower_hc{};
+                double GMR_h_lower_hc_err{};
+                double GMR_h_upper_hc{};
+                double GMR_h_upper_hc_err{};
+
+                {
+                    const auto R_up_0 = 1.0 / j_up_0;
+                    const auto R_up_0_err = j_up_err_0 / (j_up_0 * j_up_0);
+                    const auto R_down_0 = 1.0 / j_down_0;
+                    const auto R_down_0_err = j_down_err_0 / (j_down_0 * j_down_0);
+
+                    const auto R_up_H = 1.0 / j_up;
+                    const auto R_up_H_err = j_up_err / (j_up * j_up);
+                    const auto R_down_H = 1.0 / j_down;
+                    const auto R_down_H_err = j_down_err / (j_down * j_down);
+
+                    const auto R_AP_H = (R_up_H + R_down_H) / 2.0;
+                    const auto R_AP_H_err = (R_up_H_err + R_down_H_err) / 2.0;
+
+                    const auto R_P_H = 2.0 * R_up_H * R_down_H / (R_up_H + R_down_H);
+                    const auto R_up_H_mult_R_down_H__err = R_up_H * R_down_H_err + R_up_H_err * R_down_H;
+                    const auto R_up_H_plus_R_down_H__err = R_up_H_err + R_down_H_err;
+                    const auto R_P_H_err = R_P_H * (R_up_H_mult_R_down_H__err / (R_up_H * R_down_H) +
+                                                    R_up_H_plus_R_down_H__err / (R_up_H_err + R_down_H_err));
+
+                    const auto R_0 = (R_up_0 + R_down_0) / 2.0; // R_0 = R_AP_0
+                    const auto R_0_err = (R_up_0_err + R_down_0_err) / 2.0;
+
+                    GMR_h_lower_hc = R_AP_H / R_0 - 1.0;
+                    GMR_h_lower_hc_err = GMR_h_lower_hc * (R_AP_H_err / R_AP_H + R_0_err / R_0_err);
+                    GMR_h_upper_hc = R_P_H / R_0 - 1.0;
+                    GMR_h_upper_hc_err = GMR_h_upper_hc * (R_P_H_err / R_P_H + R_0_err / R_0_err);
+                }
+
+                for (auto tw_counter = 0u; tw_counter < task::base_config::t_wait_vec.size(); ++tw_counter)
+                {
+                    const auto mcs = task::base_config::t_wait_vec[tw_counter] - task::base_config::t_wait_vec[0];
+                    if (t_minus_tw_counter >= mcs)
+                    {
+                        outers[tw_counter] << GMR_h_lower_hc << "\t" << GMR_h_lower_hc_err << GMR_h_upper_hc << "\t"
+                                           << GMR_h_upper_hc_err << "\n";
+                    }
+                }
+                t_minus_tw_counter++;
+            }
+            for (auto &outer : outers)
+            {
+                outer.flush();
+                outer.close();
+            }
         }
         std::cout << "GMR calculations ends"
                   << "\n";
@@ -157,46 +229,51 @@ struct stater
         }
     }
 
+    static line_t get_double_line(std::istream &stream) noexcept
+    {
+        static line_t buf_line{};
+        buf_line.clear();
+        for (std::string data; std::getline(stream, data, '\t');)
+        {
+            double value{};
+            try
+            {
+                value = std::stod(data);
+            }
+            catch (std::out_of_range &exc)
+            {
+                value = std::numeric_limits<double>::max();
+                fprintf(stdout,
+                        "The std::out_of_range[%s] appears when trying to make "
+                        "std::stod\n",
+                        exc.what());
+            }
+            catch (std::invalid_argument &exc)
+            {
+                value = 0.0;
+                fprintf(stdout,
+                        "The std::invalid_argument[%s] appears when trying to make "
+                        "std::stod\n",
+                        exc.what());
+            }
+            buf_line.push_back(value);
+        }
+        return buf_line;
+    }
+
     static void get_values_from_streams(std::array<std::ifstream, task::base_config::stat_amount>::iterator first,
                                         std::array<std::ifstream, task::base_config::stat_amount>::iterator last,
                                         std::array<std::optional<line_t>, task::base_config::stat_amount> &buf) noexcept
     {
-        static line_t buf_line{};
         for (auto idx = 0u; first != last; ++first, ++idx)
         {
             if (!first->eof())
             {
-                buf_line.clear();
                 std::string line{};
                 std::getline(*first, line);
 
                 std::istringstream stream{line};
-                for (std::string data; std::getline(stream, data, '\t');)
-                {
-                    double value{};
-                    try
-                    {
-                        value = std::stod(data);
-                    }
-                    catch (std::out_of_range &exc)
-                    {
-                        value = std::numeric_limits<double>::max();
-                        fprintf(stdout,
-                                "The std::out_of_range[%s] appears when trying to make "
-                                "std::stod on data from file with id = %d\n",
-                                exc.what(), idx);
-                    }
-                    catch (std::invalid_argument &exc)
-                    {
-                        value = 0.0;
-                        fprintf(stdout,
-                                "The std::invalid_argument[%s] appears when trying to make "
-                                "std::stod on data from file with id = %d\n",
-                                exc.what(), idx);
-                    }
-                    buf_line.push_back(value);
-                }
-                buf[idx] = std::make_optional(buf_line);
+                buf[idx] = std::make_optional(get_double_line(stream));
             }
             else
             {

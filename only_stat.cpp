@@ -20,4 +20,5 @@ int main()
     }
 
     stat::stater::makeStat(std::filesystem::path{vals[0]}, vals[1]);
+    stat::stater::calcGMR(std::filesystem::path{vals[0]});
 }

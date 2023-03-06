@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
     }
     std::cout << "threads_amount = " << threads_amount << "\n";
 
-    std::vector<std::future<typename task::base_config::config_t>> vec(threads_amount - 1);
+    std::vector<std::thread> vec_threads(threads_amount);
+    std::vector<std::future<typename task::base_config::config_t>> vec_futures(threads_amount);
 
     const auto init_dir = std::filesystem::current_path() / results_folder / time;
     {
@@ -66,27 +67,22 @@ int main(int argc, char *argv[])
             if (iter != configs.end())
             {
                 const auto config = *iter;
-                vec[id] = std::async(std::launch::async, task::calculation, config,
-                                     currentDir); // TODO: не использовать std::async
+                std::packaged_task task{task::calculation};
+                vec_futures[id] = task.get_future();
+                vec_threads[id] = std::thread{std::move(task), config, currentDir};
                 iter++;
             }
         }
 
-        if (iter != configs.end())
+        for (auto id = 0u; id < vec_threads.size(); ++id)
         {
-            const auto this_config = *iter;
-            iter++;
-            auto this_calc = calculation(this_config, currentDir);
-            std::cout << "config : " << this_calc << "\t --- done \n";
-        }
-
-        for (auto &elem : vec)
-        {
-            std::cout << "config : " << elem.get() << "\t --- done \n";
+            std::cout << "config : " << vec_futures[id].get() << "\t --- done \n";
+            vec_threads[id].join();
         }
         std::cout << std::endl;
     }
 
     stat::stater::makeStat(init_dir, raw_data_folder);
+    stat::stater::calcGMR(init_dir);
     return 0;
 }
