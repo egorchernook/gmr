@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     auto iter = configs.begin();
     while (iter != configs.end())
     {
-        for (auto id = 0u; id < threads_amount - 1; ++id)
+        for (auto id = 0u; id < threads_amount; ++id)
         {
             if (iter != configs.end())
             {
