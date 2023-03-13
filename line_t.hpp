@@ -27,7 +27,6 @@ struct line_t final : private std::vector<double>
 
     line_t() : data_t{}
     {
-        this->reserve(10);
     }
 
     line_t &operator+=(const line_t &other) noexcept

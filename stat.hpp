@@ -51,7 +51,7 @@ struct stater
         {
             if (elem.stat_id == 0 && !is_almost_equals(elem.field, {0.0, 0.0, 0.0}))
             {
-                configs.push_back(std::move(elem));
+                configs.emplace_back(std::move(elem));
             }
         }
         for (const auto &config : configs)
@@ -60,29 +60,34 @@ struct stater
                 config.stat_id, config.N, config.T_creation, config.T_sample, {0.0, 0.0, 0.0}};
 
             std::filesystem::current_path(path_to_result_folder / stat_folder);
-            auto j_file_0 = std::ifstream{std::filesystem::current_path() / task::createName(config_0)};
+            auto j_file_0 = std::ifstream{std::filesystem::current_path() / task::createName(config_0) / "j.txt"};
 
             const auto folder_name = task::createName(config);
             std::filesystem::current_path(std::filesystem::current_path() / folder_name);
-            auto j_file = std::ifstream{std::filesystem::current_path()};
+            auto j_file = std::ifstream{std::filesystem::current_path() / "j.txt"};
 
             {
                 std::string j_file_head{};
+                std::string j_file_head_0{};
                 std::getline(j_file, j_file_head);
-                std::getline(j_file_0, j_file_head);
+                std::getline(j_file_0, j_file_head_0);
             }
 
             std::array<std::ofstream, task::base_config::t_wait_vec.size()> outers{};
             for (auto tw_counter = 0u; tw_counter < task::base_config::t_wait_vec.size(); ++tw_counter)
             {
                 outers[tw_counter].open("GMR_tw=" + std::to_string(task::base_config::t_wait_vec[tw_counter]) + ".txt");
-                outers[tw_counter] << "GMR_h_lower_hc\t\tGMR_h_upper_hc\t\n";
+                outers[tw_counter] << "GMR_h_lower_hc\t\tGMR_h_upper_hc\t" << std::endl;
             }
             auto t_minus_tw_counter = 0u;
             while (!j_file.eof() && !j_file_0.eof())
             {
                 std::string line{};
                 std::getline(j_file, line);
+                if (line == "")
+                {
+                    break;
+                }
                 std::istringstream stream1{line};
                 const auto j_line = get_double_line(stream1);
                 auto j_up = j_line[0];
@@ -91,6 +96,10 @@ struct stater
                 auto j_down_err = j_line[3];
 
                 std::getline(j_file_0, line);
+                if (line == "")
+                {
+                    break;
+                }
                 std::istringstream stream2{line};
                 const auto j_line_0 = get_double_line(stream2);
                 auto j_up_0 = j_line_0[0];
@@ -137,8 +146,8 @@ struct stater
                     const auto mcs = task::base_config::t_wait_vec[tw_counter] - task::base_config::t_wait_vec[0];
                     if (t_minus_tw_counter >= mcs)
                     {
-                        outers[tw_counter] << GMR_h_lower_hc << "\t" << GMR_h_lower_hc_err << GMR_h_upper_hc << "\t"
-                                           << GMR_h_upper_hc_err << "\n";
+                        outers[tw_counter] << GMR_h_lower_hc << '\t' << GMR_h_lower_hc_err << '\t' << GMR_h_upper_hc
+                                           << '\t' << GMR_h_upper_hc_err << '\n';
                     }
                 }
                 t_minus_tw_counter++;
@@ -222,14 +231,14 @@ struct stater
 
                 for (auto idx = 0u; idx < average.size(); ++idx)
                 {
-                    out << average[idx] << "\t" << err[idx] << "\t";
+                    out << average[idx] << '\t' << err[idx] << '\t';
                 }
-                out << "\n";
+                out << '\n';
             }
             out.flush();
             out.close();
 
-            std::cout << "\t" << fs::current_path().string() << "/" << name << " file stat ends\n";
+            std::cout << '\t' << fs::current_path().string() << '/' << name << " file stat ends\n";
         }
     }
 
