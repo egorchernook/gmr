@@ -14,7 +14,7 @@ inline typename task::base_config::config_t calculation(typename task::base_conf
 {
     using task::base_config;
     outputer_t outputer{config, current_dir};
-    outputer.createDirectoriesAndEnter(task::createName(config));
+    outputer.EnterDirectory(task::createName(config));
 
     auto m_out = outputer.createFile("m");
     m_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z");

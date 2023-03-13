@@ -58,14 +58,14 @@ struct base_config
     constexpr static std::uint16_t stat_amount = 5; // количество статистических прогонок
     constexpr static std::uint64_t mcs_init = 500;
     constexpr static std::uint64_t mcs_observation = 1'000;
-    constexpr static std::array N_size_vec{3u, 5u};
+    constexpr static std::array N_size_vec{3u};
     constexpr static std::array T_creation_vec{0.67};
     constexpr static std::array T_sample_vec{0.95};
     constexpr static std::array t_wait_vec{100u, 200u, 400u, 1000u}; // должен быть отсортирован по увеличению
-    constexpr static std::array magn_field_vec{
-        typename spin_t::magn_t{0.0, 0.0, 0.0}, typename spin_t::magn_t{0.0, 0.0, 0.1},
-        typename spin_t::magn_t{0.0, 0.0, 0.5}, typename spin_t::magn_t{0.0, 0.0, 1.0},
-        typename spin_t::magn_t{0.0, 0.0, 5.0}};
+    constexpr static std::array magn_field_vec{typename spin_t::magn_t{0.0, 0.0, 0.0},
+                                               typename spin_t::magn_t{0.0, 0.0, 0.1}}; /*,
+         typename spin_t::magn_t{0.0, 0.0, 0.5}, typename spin_t::magn_t{0.0, 0.0, 1.0},
+         typename spin_t::magn_t{0.0, 0.0, 5.0}};*/
 
     constexpr static auto createHamilton_f(const typename spin_t::magn_t &h, double Delta)
     {

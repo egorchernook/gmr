@@ -58,10 +58,14 @@ struct stater
         {
             task::base_config::config_t config_0{
                 config.stat_id, config.N, config.T_creation, config.T_sample, {0.0, 0.0, 0.0}};
+
+            std::filesystem::current_path(path_to_result_folder / stat_folder);
+            auto j_file_0 = std::ifstream{std::filesystem::current_path() / task::createName(config_0)};
+
             const auto folder_name = task::createName(config);
-            std::filesystem::current_path(path_to_result_folder / stat_folder / folder_name);
+            std::filesystem::current_path(std::filesystem::current_path() / folder_name);
             auto j_file = std::ifstream{std::filesystem::current_path()};
-            auto j_file_0 = std::ifstream{path_to_result_folder / stat_folder / task::createName(config_0)};
+
             {
                 std::string j_file_head{};
                 std::getline(j_file, j_file_head);
@@ -245,16 +249,16 @@ struct stater
                 value = std::numeric_limits<double>::max();
                 fprintf(stdout,
                         "The std::out_of_range[%s] appears when trying to make "
-                        "std::stod\n",
-                        exc.what());
+                        "std::stod on value{%s}\n",
+                        exc.what(), data.c_str());
             }
             catch (std::invalid_argument &exc)
             {
                 value = 0.0;
                 fprintf(stdout,
                         "The std::invalid_argument[%s] appears when trying to make "
-                        "std::stod\n",
-                        exc.what());
+                        "std::stod on value{%s}\n",
+                        exc.what(), data.c_str());
             }
             buf_line.push_back(value);
         }

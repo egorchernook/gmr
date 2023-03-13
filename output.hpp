@@ -48,22 +48,12 @@ class outputer_t
         std::filesystem::current_path(current_dir);
     }
 
-    static void create_directories(std::string_view directory_name)
-    {
-        using std::filesystem::exists;
-        if (!exists(directory_name))
-        {
-            std::filesystem::create_directories(directory_name);
-        }
-    }
-
-    outputer_t &createDirectoriesAndEnter(std::string_view directory_name) noexcept
+    outputer_t &EnterDirectory(std::string_view directory_name)
     {
         using std::filesystem::current_path;
-        const auto dir = current_path() / directory_name;
-        create_directories(dir.string());
+        const auto dir = folder / directory_name;
         current_path(dir);
-        folder = current_path();
+        folder = dir;
         return *this;
     }
 
@@ -116,7 +106,7 @@ class outputer_t
             return *this;
         }
 
-        ~output_file_t() noexcept
+        ~output_file_t()
         {
             out.flush();
             out.close();
@@ -126,7 +116,8 @@ class outputer_t
     // id стат прогонки и расширение ставится автоматически
     output_file_t createFile(const std::string &name) const noexcept
     {
-        std::ofstream res{name + "_id=" + std::to_string(id) + ".txt"};
+        const auto filename = name + "_id=" + std::to_string(id) + ".txt";
+        std::ofstream res{folder / filename};
         res << std::fixed;
         return res;
     }
