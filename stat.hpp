@@ -135,9 +135,9 @@ struct stater
                     const auto R_0 = (R_up_0 + R_down_0) / 2.0; // R_0 = R_AP_0
                     const auto R_0_err = (R_up_0_err + R_down_0_err) / 2.0;
 
-                    GMR_h_lower_hc = R_AP_H / R_0 - 1.0;
+                    GMR_h_lower_hc = R_AP_H / R_0;
                     GMR_h_lower_hc_err = GMR_h_lower_hc * (R_AP_H_err / R_AP_H + R_0_err / R_0_err);
-                    GMR_h_upper_hc = R_P_H / R_0 - 1.0;
+                    GMR_h_upper_hc = R_P_H / R_0;
                     GMR_h_upper_hc_err = GMR_h_upper_hc * (R_P_H_err / R_P_H + R_0_err / R_0_err);
                 }
 
