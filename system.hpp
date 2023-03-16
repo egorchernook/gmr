@@ -6,7 +6,6 @@
 #include <type_traits>
 #include <utility>
 
-
 #include "config.hpp"
 
 namespace task
@@ -46,7 +45,7 @@ struct sample_t
     {
         proxy_lattice.T = config.T_sample;
         const auto temp_magn1 = abs(lattice.magns[0]);
-        const auto temp_magn2 = -abs(lattice.magns[1]);
+        const auto temp_magn2 = abs(lattice.magns[1]);
 
         const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
         const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};
@@ -63,7 +62,7 @@ struct sample_t
     std::array<double, 2> makeJCalc()
     {
         const auto temp_magn1 = abs(lattice.magns[0]);
-        const auto temp_magn2 = -abs(lattice.magns[1]);
+        const auto temp_magn2 = abs(lattice.magns[1]);
 
         const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
         const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};

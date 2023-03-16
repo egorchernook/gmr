@@ -90,10 +90,10 @@ struct stater
                 }
                 std::istringstream stream1{line};
                 const auto j_line = get_double_line(stream1);
-                auto j_up = j_line[0];
-                auto j_up_err = j_line[1];
-                auto j_down = j_line[2];
-                auto j_down_err = j_line[3];
+                auto j_up_h = j_line[0];
+                auto j_up_h_err = j_line[1];
+                auto j_down_h = j_line[2];
+                auto j_down_h_err = j_line[3];
 
                 std::getline(j_file_0, line);
                 if (line == "")
@@ -113,32 +113,16 @@ struct stater
                 double GMR_h_upper_hc_err{};
 
                 {
-                    const auto R_up_0 = 1.0 / j_up_0;
-                    const auto R_up_0_err = j_up_err_0 / (j_up_0 * j_up_0);
-                    const auto R_down_0 = 1.0 / j_down_0;
-                    const auto R_down_0_err = j_down_err_0 / (j_down_0 * j_down_0);
-
-                    const auto R_up_H = 1.0 / j_up;
-                    const auto R_up_H_err = j_up_err / (j_up * j_up);
-                    const auto R_down_H = 1.0 / j_down;
-                    const auto R_down_H_err = j_down_err / (j_down * j_down);
-
-                    const auto R_AP_H = (R_up_H + R_down_H) / 2.0;
-                    const auto R_AP_H_err = (R_up_H_err + R_down_H_err) / 2.0;
-
-                    const auto R_P_H = 2.0 * R_up_H * R_down_H / (R_up_H + R_down_H);
-                    const auto R_up_H_mult_R_down_H__err = R_up_H * R_down_H_err + R_up_H_err * R_down_H;
-                    const auto R_up_H_plus_R_down_H__err = R_up_H_err + R_down_H_err;
-                    const auto R_P_H_err = R_P_H * (R_up_H_mult_R_down_H__err / (R_up_H * R_down_H) +
-                                                    R_up_H_plus_R_down_H__err / (R_up_H_err + R_down_H_err));
-
-                    const auto R_0 = (R_up_0 + R_down_0) / 2.0; // R_0 = R_AP_0
-                    const auto R_0_err = (R_up_0_err + R_down_0_err) / 2.0;
-
-                    GMR_h_lower_hc = R_AP_H / R_0;
-                    GMR_h_lower_hc_err = GMR_h_lower_hc * (R_AP_H_err / R_AP_H + R_0_err / R_0_err);
-                    GMR_h_upper_hc = R_P_H / R_0;
-                    GMR_h_upper_hc_err = GMR_h_upper_hc * (R_P_H_err / R_P_H + R_0_err / R_0_err);
+                    GMR_h_lower_hc =
+                        (j_up_h + j_down_h) / (j_up_h * j_down_h) * (j_up_0 * j_down_0) / (j_up_0 + j_down_0) - 1.0;
+                    GMR_h_lower_hc_err = (GMR_h_lower_hc + 1.0) *
+                                         ((j_up_h_err + j_down_h_err) / (j_up_h + j_down_h) + j_up_h_err / j_up_h +
+                                          j_down_h_err / j_down_h + j_up_err_0 / j_up_0 + j_down_err_0 / j_down_0 +
+                                          (j_up_err_0 + j_down_err_0) / (j_up_0 + j_down_0));
+                    GMR_h_upper_hc = 4.0 * (j_up_0 * j_down_0) / ((j_up_h + j_down_h) * (j_up_0 + j_down_0)) - 1.0;
+                    GMR_h_upper_hc_err = (GMR_h_upper_hc + 1.0) * (j_up_err_0 / j_up_0 + j_down_err_0 / j_down_0 +
+                                                                   (j_up_err_0 + j_down_err_0) / (j_up_0 + j_down_0) +
+                                                                   (j_up_h_err + j_down_h_err) / (j_up_h + j_down_h));
                 }
 
                 for (auto tw_counter = 0u; tw_counter < task::base_config::t_wait_vec.size(); ++tw_counter)
@@ -146,8 +130,8 @@ struct stater
                     const auto mcs = task::base_config::t_wait_vec[tw_counter] - task::base_config::t_wait_vec[0];
                     if (t_minus_tw_counter >= mcs)
                     {
-                        outers[tw_counter] << GMR_h_lower_hc << '\t' << GMR_h_lower_hc_err << '\t' << GMR_h_upper_hc
-                                           << '\t' << GMR_h_upper_hc_err << '\n';
+                        outers[tw_counter] << GMR_h_lower_hc * 100 << '\t' << GMR_h_lower_hc_err * 100 << '\t'
+                                           << GMR_h_upper_hc * 100 << '\t' << GMR_h_upper_hc_err * 100 << '\n';
                     }
                 }
                 t_minus_tw_counter++;
