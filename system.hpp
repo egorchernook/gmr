@@ -27,7 +27,7 @@ struct sample_t
 
     sample_t(lattice_t &&lattice_, n_lattice_t &&n_up_, n_lattice_t &&n_down_, const base_config::config_t &config_)
         : lattice{lattice_}, n_up{n_up_}, n_down{n_down_},
-          proxy_lattice{qss::algorithms::spin_transport::prepare_proxy_structure<'x'>(lattice, n_up, n_down)},
+          proxy_lattice{qss::algorithms::spin_transport::prepare_proxy_structure(lattice, n_up, n_down, 'x')},
           config{config_}, hamilt{base_config::createHamilton_f(config.field, base_config::getDelta(config.N))}
     {
     }
@@ -45,7 +45,7 @@ struct sample_t
     {
         proxy_lattice.T = config.T_sample;
         const auto temp_magn1 = abs(lattice.magns[0]);
-        const auto temp_magn2 = abs(lattice.magns[1]);
+        const auto temp_magn2 = -abs(lattice.magns[1]);
 
         const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
         const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};
@@ -62,7 +62,7 @@ struct sample_t
     std::array<double, 2> makeJCalc()
     {
         const auto temp_magn1 = abs(lattice.magns[0]);
-        const auto temp_magn2 = abs(lattice.magns[1]);
+        const auto temp_magn2 = -abs(lattice.magns[1]);
 
         const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
         const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};

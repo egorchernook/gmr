@@ -82,8 +82,11 @@ int main(int argc, char *argv[])
 
             for (auto id = 0u; id < vec_threads.size(); ++id)
             {
-                std::cout << "config : " << vec_futures[id].get() << "\t --- done \n";
-                vec_threads[id].join();
+                if (vec_threads[id].joinable())
+                {
+                    std::cout << "config : " << vec_futures[id].get() << "\t --- done \n";
+                    vec_threads[id].join();
+                }
             }
             std::cout << std::endl;
         }
