@@ -14,6 +14,8 @@
 
 namespace stat
 {
+
+// TODO: не работает с новой статистикой -- исправить
 struct stater
 {
     constexpr static std::string_view stat_folder{"processed"};
@@ -154,16 +156,21 @@ struct stater
     static void create_stat(std::string &&name, const std::vector<task::base_config::config_t> &configs,
                             std::filesystem::path path_to_result_folder, std::string_view raw_data_folder)
     {
-        std::array<std::ifstream, task::base_config::stat_amount> input_streams;
+        std::vector<std::ifstream> input_streams{};
         for (const auto &config : configs)
         {
             namespace fs = std::filesystem;
             const auto folder_name = task::createName(config);
             const auto path_to_file = path_to_result_folder / raw_data_folder / folder_name;
 
-            for (auto idx = 0u; idx < input_streams.size(); ++idx)
             {
-                input_streams[idx] = std::ifstream(path_to_file / create_file_name(name, idx));
+                using std::filesystem::exists;
+                auto idx = 0u;
+                while (exists(path_to_file / create_file_name(name, idx)))
+                {
+                    input_streams.push_back(std::ifstream(path_to_file / create_file_name(name, idx)));
+                    idx++;
+                }
             }
 
             const auto init_head = remove_heads(input_streams.begin(), input_streams.end());
@@ -187,7 +194,7 @@ struct stater
                 out << "\n";
             }
 
-            std::array<std::optional<line_t>, input_streams.size()> buf{};
+            std::vector<std::optional<line_t>> buf(input_streams.size());
             while (!is_end())
             {
                 get_values_from_streams(input_streams.begin(), input_streams.end(), buf);
@@ -258,9 +265,8 @@ struct stater
         return buf_line;
     }
 
-    static void get_values_from_streams(std::array<std::ifstream, task::base_config::stat_amount>::iterator first,
-                                        std::array<std::ifstream, task::base_config::stat_amount>::iterator last,
-                                        std::array<std::optional<line_t>, task::base_config::stat_amount> &buf) noexcept
+    template <typename Iter>
+    static void get_values_from_streams(Iter first, Iter last, std::vector<std::optional<line_t>> &buf) noexcept
     {
         for (auto idx = 0u; first != last; ++first, ++idx)
         {
@@ -279,8 +285,7 @@ struct stater
         }
     }
 
-    static std::string remove_heads(std::array<std::ifstream, task::base_config::stat_amount>::iterator begin,
-                                    std::array<std::ifstream, task::base_config::stat_amount>::iterator end) noexcept
+    template <typename Iter> static std::string remove_heads(Iter begin, Iter end) noexcept
     {
         std::string ret_val{};
 

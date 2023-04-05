@@ -63,46 +63,30 @@ class outputer_t
 
       public:
         output_file_t() = delete;
-        output_file_t(std::ofstream &&out_) : out{std::move(out_)} {};
+        output_file_t(const output_file_t &other) = delete;
+        output_file_t(output_file_t &&other) : out{std::move(other.out)} {};
+        output_file_t &operator=(output_file_t &&other)
+        {
+            out = std::move(other.out);
+            return *this;
+        }
+
         output_file_t(const std::ofstream &out_) = delete;
+        output_file_t(std::ofstream &&out_) : out{std::move(out_)} {};
         output_file_t &operator=(const std::ofstream &out_) = delete;
 
         // агрументы разделяются \t
-        template <typename... Args> output_file_t &printLn(Args &...args) noexcept
+        template <typename... Args> output_file_t &printLn(Args... args) noexcept
         {
-            ((out << std::forward<Args>(args) << "\t"), ...);
-            out << "\n";
-            return *this;
-        }
-        template <typename... Args> output_file_t &printLn(Args &&...args) noexcept
-        {
-            ((out << std::forward<Args>(args) << "\t"), ...);
+            ((out << args << "\t"), ...);
             out << "\n";
             return *this;
         }
 
-        template <typename Head, typename... Args> output_file_t &print(Head &fst, Args &...args) noexcept
+        template <typename Head, typename... Args> output_file_t &print(Head fst, Args... args) noexcept
         {
             out << fst;
-            ((out << "\t" << std::forward<Args>(args)), ...);
-            return *this;
-        }
-        template <typename Head, typename... Args> output_file_t &print(Head &&fst, Args &...args) noexcept
-        {
-            out << fst;
-            ((out << "\t" << std::forward<Args>(args)), ...);
-            return *this;
-        }
-        template <typename Head, typename... Args> output_file_t &print(Head &fst, Args &&...args) noexcept
-        {
-            out << fst;
-            ((out << "\t" << std::forward<Args>(args)), ...);
-            return *this;
-        }
-        template <typename Head, typename... Args> output_file_t &print(Head &&fst, Args &&...args) noexcept
-        {
-            out << fst;
-            ((out << "\t" << std::forward<Args>(args)), ...);
+            ((out << "\t" << args), ...);
             return *this;
         }
 
@@ -113,11 +97,9 @@ class outputer_t
         }
     };
 
-    // id стат прогонки и расширение ставится автоматически
     output_file_t createFile(const std::string &name) const noexcept
     {
-        const auto filename = name + "_id=" + std::to_string(id) + ".txt";
-        std::ofstream res{folder / filename};
+        std::ofstream res{folder / name};
         res << std::fixed;
         return res;
     }

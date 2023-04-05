@@ -82,8 +82,8 @@ def plot_GMR_t(path):
     init_dir = os.path.abspath(os.path.curdir)
     os.chdir(path)
 
-    vals_lhc, vals_lhc_stat_err = plot_GMR_t_impl(1, "GMR_lhc")
-    vals_uhc, vals_uhc_stat_err = plot_GMR_t_impl(1, "GMR_uhc")
+    vals_lhc, vals_lhc_stat_err = plot_GMR_t_impl(1, "MR_lhc")
+    vals_uhc, vals_uhc_stat_err = plot_GMR_t_impl(3, "MR_uhc")
 
     mean_lhs, mean_lhs_mcs_err, size_mean_mcs_lhc = find_plateau(vals_lhc)
     mean_uhs, mean_uhs_mcs_err, size_mean_mcs_uhc = find_plateau(vals_uhc)
@@ -194,7 +194,7 @@ def plot_with_h_as_x_ax(x_axs: List, y_axs: List, yerrs: List, data_labels: List
     ax.xaxis.set_minor_locator(
         ticker.MultipleLocator(x_tick_size / 2))
 
-    y_tick_size = abs(np.max(y_axs) - np.min(y_axs)) / 10
+    y_tick_size = max(abs(np.max(y_axs) - np.min(y_axs)), np.max(yerrs)) / 10
     ax.yaxis.set_major_locator(
         ticker.MultipleLocator(y_tick_size))
     ax.yaxis.set_minor_locator(
@@ -296,6 +296,18 @@ for dir_N in os.listdir():
                                 gmr_list.append(gmr_lhc_list[idx])
                                 gmr_err_list.append(gmr_lhc_err_list[idx])
 
+                        pol_list: List[np.double] = list()
+                        pol_err_list: List[np.double] = list()
+                        pol_list.append(0.0)
+                        pol_err_list.append(0.0)
+                        for idx in range(1, len(gmr_list)):
+                            gmr = gmr_list[idx]
+                            value = np.sqrt(gmr / (200.0 + gmr))  # gmr is a %
+                            pol_list.append(value)
+                            # ( gmr_err_list[idx] / gmr + gmr_err_list[idx] / (200.0 + gmr)) / (2.0 * np.sqrt(value))
+                            err = 0.0
+                            pol_err_list.append(err)
+
                         plot_with_h_as_x_ax([h_list1, h_list3], [m_fst_list, m_snd_list],
                                             [m_fst_list_err, m_snd_list_err],
                                             [r'$m_{x}^{1}$', r'$m_{x}^{2}$'],
@@ -306,7 +318,13 @@ for dir_N in os.listdir():
                         plot_with_h_as_x_ax([h_list5], [gmr_list], [
                                             gmr_err_list], [r'$\delta$'],
                                             r'$h_{x}(J_{1})$', r'$\delta ,\%$',
-                                            "GMR_h",
+                                            "MR_h",
+                                            N_str + T0_str + Ts_str)
+
+                        plot_with_h_as_x_ax([h_list8], [pol_list], [
+                                            pol_err_list], [r'$P_s$'],
+                                            r'$h_{x}(J_{1})$', r'$P_s$',
+                                            "Ps_h",
                                             N_str + T0_str + Ts_str)
 
                         os.chdir("..")

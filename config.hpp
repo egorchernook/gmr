@@ -49,25 +49,27 @@ struct base_config
     // линейный размер
     constexpr static std::uint16_t L = 64;
     // обменный интеграл взаимодействия плёнок
-    constexpr static double J2 = -0.3;
+    constexpr static double J2 = 0.0;
     constexpr static std::array<double, 10> deltas{0.5, 0.6, 0.636, 0.7, 0.734, 0.77, 0.816, 0.85, 0.882, 0.9};
     constexpr static double getDelta(std::uint16_t N)
     {
         return deltas[--N];
     }
-    constexpr static std::uint16_t stat_amount = 10; // количество статистических прогонок
+    constexpr static std::uint16_t m_stat_amount = 5; // количество статистических прогонок
+    constexpr static std::uint16_t j_stat_amount = 10;
     constexpr static std::uint64_t mcs_init = 500;
-    constexpr static std::uint64_t mcs_observation = 10'000;
-    constexpr static std::array N_size_vec{5u};
+    constexpr static std::uint64_t mcs_observation = 2'000;
+    constexpr static std::array N_size_vec{3u};
     constexpr static std::array T_creation_vec{0.67};
     constexpr static std::array T_sample_vec{0.95};
     constexpr static std::array t_wait_vec{100u, 200u, 400u, 1000u}; // должен быть отсортирован по увеличению
     constexpr static std::array magn_field_vec{
-        typename spin_t::magn_t{0.0, 0.0, 0.0}, typename spin_t::magn_t{0.1, 0.0, 0.0},
-        typename spin_t::magn_t{0.5, 0.0, 0.0}, typename spin_t::magn_t{0.6, 0.0, 0.0},
-        typename spin_t::magn_t{0.7, 0.0, 0.0}, typename spin_t::magn_t{0.8, 0.0, 0.0},
-        typename spin_t::magn_t{0.9, 0.0, 0.0}, typename spin_t::magn_t{1.0, 0.0, 0.0},
-        typename spin_t::magn_t{2.0, 0.0, 0.0}, typename spin_t::magn_t{5.0, 0.0, 0.0}};
+        typename spin_t::magn_t{0.0, 0.0, 0.0}, typename spin_t::magn_t{0.5, 0.0, 0.0},
+        /*typename spin_t::magn_t{0.6, 0.0, 0.0}, typename spin_t::magn_t{0.65, 0.0, 0.0},
+        typename spin_t::magn_t{0.7, 0.0, 0.0}, typename spin_t::magn_t{0.75, 0.0, 0.0},
+        typename spin_t::magn_t{0.8, 0.0, 0.0}, typename spin_t::magn_t{0.85, 0.0, 0.0},
+        typename spin_t::magn_t{0.9, 0.0, 0.0}, typename spin_t::magn_t{0.95, 0.0, 0.0},*/
+        typename spin_t::magn_t{1.0, 0.0, 0.0}, typename spin_t::magn_t{2.0, 0.0, 0.0}};
 
     constexpr static auto createHamilton_f(const typename spin_t::magn_t &h, double Delta)
     {
@@ -84,11 +86,11 @@ struct base_config
     static std::vector<config_t> getConfigs()
     {
         std::vector<config_t> result{};
-        result.reserve(stat_amount * N_size_vec.size() * T_creation_vec.size() * T_sample_vec.size() *
+        result.reserve(m_stat_amount * N_size_vec.size() * T_creation_vec.size() * T_sample_vec.size() *
                        magn_field_vec.size());
         for (const auto &N : N_size_vec)
         {
-            for (auto id = 0u; id < stat_amount; ++id)
+            for (auto id = 0u; id < m_stat_amount; ++id)
             {
                 for (const auto &T_creation : T_creation_vec)
                 {
@@ -122,9 +124,10 @@ template <typename Iter> inline std::string values_as_string(Iter first, Iter la
 inline std::string create_config_info()
 {
     std::ostringstream stream{};
-    stream << "base_config : \n[\n\t stat_amount : " << base_config::stat_amount
-           << "\n\t mcs_init : " << base_config::mcs_init << "\n\t mcs_observation : " << base_config::mcs_observation
-           << "\n\t N_size_vec : [" << values_as_string(base_config::N_size_vec.begin(), base_config::N_size_vec.end())
+    stream << "base_config : \n[\n\t m_stat_amount : " << base_config::m_stat_amount
+           << "\n\t j_stat_amount : " << base_config::j_stat_amount << "\n\t mcs_init : " << base_config::mcs_init
+           << "\n\t mcs_observation : " << base_config::mcs_observation << "\n\t N_size_vec : ["
+           << values_as_string(base_config::N_size_vec.begin(), base_config::N_size_vec.end())
            << "]\n\t T_creation_vec : ["
            << values_as_string(base_config::T_creation_vec.begin(), base_config::T_creation_vec.end())
            << "]\n\t T_sample_vec : ["
