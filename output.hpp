@@ -16,7 +16,7 @@ class outputer_t
     std::filesystem::path folder;
     const int id;
 
-  public:
+public:
     static std::string createName(std::string_view text, auto &&value_var) noexcept
     {
         std::ostringstream stream{};
@@ -61,7 +61,7 @@ class outputer_t
     {
         std::ofstream out;
 
-      public:
+    public:
         output_file_t() = delete;
         output_file_t(const output_file_t &other) = delete;
         output_file_t(output_file_t &&other) : out{std::move(other.out)} {};
@@ -76,17 +76,26 @@ class outputer_t
         output_file_t &operator=(const std::ofstream &out_) = delete;
 
         // агрументы разделяются \t
-        template <typename... Args> output_file_t &printLn(Args... args) noexcept
+        template <typename... Args>
+        output_file_t &printLn(Args... args) noexcept
         {
             ((out << args << "\t"), ...);
             out << "\n";
             return *this;
         }
 
-        template <typename Head, typename... Args> output_file_t &print(Head fst, Args... args) noexcept
+        template <typename Head, typename... Args>
+        output_file_t &print(Head fst, Args... args) noexcept
         {
             out << fst;
-            ((out << "\t" << args), ...);
+            if (sizeof(...) == 0)
+            {
+                out << "\t";
+            }
+            else
+            {
+                ((out << "\t" << args), ...);
+            }
             return *this;
         }
 
