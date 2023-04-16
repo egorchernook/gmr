@@ -88,7 +88,7 @@ public:
         output_file_t &print(Head fst, Args... args) noexcept
         {
             out << fst;
-            if (sizeof(...) == 0)
+            if (sizeof...(Args) == 0)
             {
                 out << "\t";
             }
