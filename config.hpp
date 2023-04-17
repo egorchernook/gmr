@@ -55,14 +55,14 @@ struct base_config
     {
         return deltas[--N];
     }
-    constexpr static std::uint16_t m_stat_amount = 5; // количество статистических прогонок
-    constexpr static std::uint16_t j_stat_amount = 10;
+    constexpr static std::uint16_t m_stat_amount = 2; // количество статистических прогонок
+    constexpr static std::uint16_t j_stat_amount = 4;
     constexpr static std::uint64_t mcs_init = 500;
-    constexpr static std::uint64_t mcs_observation = 2'000;
+    constexpr static std::uint64_t mcs_observation = 1'000;
     constexpr static std::array N_size_vec{3u};
     constexpr static std::array T_creation_vec{0.67};
     constexpr static std::array T_sample_vec{0.95};
-    constexpr static std::array t_wait_vec{100u, 200u, 400u, 1000u}; // должен быть отсортирован по увеличению
+    constexpr static std::array t_wait_vec{100u, 200u};//, 400u, 1000u}; // должен быть отсортирован по увеличению
     constexpr static std::array magn_field_vec{
         typename spin_t::magn_t{0.0, 0.0, 0.0}, typename spin_t::magn_t{0.5, 0.0, 0.0},
         /*typename spin_t::magn_t{0.6, 0.0, 0.0}, typename spin_t::magn_t{0.65, 0.0, 0.0},

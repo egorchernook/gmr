@@ -21,8 +21,8 @@ struct sample_t
     std::vector<n_lattice_t> n_up_vec;
     std::vector<n_lattice_t> n_down_vec;
 
-    std::array<std::valarray<double>, task::base_config::j_stat_amount> N_up_values_arr{};
-    std::array<std::valarray<double>, task::base_config::j_stat_amount> N_down_values_arr{};
+    std::array<std::valarray<double>, 2> N_up_values_arr{};
+    std::array<std::valarray<double>, 2> N_down_values_arr{};
 
     std::vector<std::size_t> volumes{};
 
@@ -121,7 +121,7 @@ struct sample_t
             {
                 film.fill(n_up_value);
                 const auto film_volume = static_cast<double>(film.get_amount_of_nodes());
-                N_up_values_arr[idx][idx_film] = n_up_value / film_volume;
+                N_up_values_arr[idx_film][idx] = n_up_value / film_volume;
                 idx_film++;
             }
             idx++;
@@ -132,7 +132,7 @@ struct sample_t
             {
                 film.fill(n_down_value);
                 const auto film_volume = static_cast<double>(film.get_amount_of_nodes());
-                N_down_values_arr[idx][idx_film] = n_down_value / film_volume;
+                N_down_values_arr[idx_film][idx] = n_down_value / film_volume;
                 idx_film++;
             }
             idx++;
@@ -145,6 +145,7 @@ struct sample_t
             const auto [j_up, j_down] = qss::algorithms::spin_transport::perform(proxy_lattice);
             j_up_arr[idx] = j_up;
             j_down_arr[idx] = j_down;
+            idx++;
         }
         constexpr auto area = base_config::L * base_config::L;
         return {j_up_arr / area, j_down_arr / area};
@@ -160,15 +161,15 @@ struct sample_t
         for (auto idx = 0u; auto &n_up : n_up_vec)
         {
             const auto [old, amount] = n_up[0].fill_plane(0, n_up_value);
-            N_up_values_arr[idx][0] -= old / amount;
-            N_up_values_arr[idx][0] += n_up_value;
+            N_up_values_arr[0][idx] -= old / amount;
+            N_up_values_arr[0][idx] += n_up_value;
             idx++;
         }
         for (auto idx = 0u; auto &n_down : n_down_vec)
         {
             const auto [old, amount] = n_down[0].fill_plane(0, n_down_value);
-            N_down_values_arr[idx][0] -= old / amount;
-            N_down_values_arr[idx][0] += n_down_value;
+            N_down_values_arr[0][idx] -= old / amount;
+            N_down_values_arr[0][idx] += n_down_value;
             idx++;
         }
 
@@ -179,6 +180,7 @@ struct sample_t
             const auto [j_up, j_down] = qss::algorithms::spin_transport::perform(proxy_lattice);
             j_up_arr[idx] = j_up;
             j_down_arr[idx] = j_down;
+            idx++;
         }
         constexpr auto area = base_config::L * base_config::L;
         return {j_up_arr / area, j_down_arr / area};

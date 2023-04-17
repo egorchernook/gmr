@@ -75,7 +75,7 @@ public:
         output_file_t(std::ofstream &&out_) : out{std::move(out_)} {};
         output_file_t &operator=(const std::ofstream &out_) = delete;
 
-        // агрументы разделяются \t
+        // агрументы разделяются табуляцией
         template <typename... Args>
         output_file_t &printLn(Args... args) noexcept
         {

@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
             std::cout << std::endl;
         }
     }
-    stat::stater::makeStat(init_dir, raw_data_folder);
-    stat::stater::calcGMR(init_dir);
+    //stat::stater::makeStat(init_dir, raw_data_folder);
+    //stat::stater::calcGMR(init_dir);
 
     return 0;
 }
