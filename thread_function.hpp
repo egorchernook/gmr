@@ -20,7 +20,7 @@ namespace task
         outputer_t outputer{config, current_dir};
         outputer.EnterDirectory(task::createName(config));
 
-        auto m_out = outputer.createFile("m_id=" + std::to_string(config.stat_id));
+        auto m_out = outputer.createFile("m_id=" + std::to_string(config.stat_id) + ".txt");
         m_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z");
 
         std::vector<typename outputer_t::output_file_t> j_out_vec{};
@@ -29,19 +29,19 @@ namespace task
         for (auto idx = 0u; idx < task::base_config::j_stat_amount; ++idx)
         {
             const std::string j_filename =
-                "j_id=" + std::to_string(config.stat_id * task::base_config::j_stat_amount + idx);
+                "j_id=" + std::to_string(config.stat_id * task::base_config::j_stat_amount + idx) + ".txt";
             auto j_out = outputer.createFile(j_filename);
             j_out_vec.push_back(std::move(j_out));
             j_out_vec[idx].printLn("j_up", "j_down");
 
             const std::string Nup_filename =
-                "Nup_id=" + std::to_string(config.stat_id * task::base_config::j_stat_amount + idx);
+                "Nup_id=" + std::to_string(config.stat_id * task::base_config::j_stat_amount + idx) + ".txt";
             auto Nup_out = outputer.createFile(Nup_filename);
             Nup_out_vec.push_back(std::move(Nup_out));
             Nup_out_vec[idx].printLn("N_up_1", "N_up_2");
 
             const std::string Ndown_filename =
-                "Ndown_id=" + std::to_string(config.stat_id * task::base_config::j_stat_amount + idx);
+                "Ndown_id=" + std::to_string(config.stat_id * task::base_config::j_stat_amount + idx) + ".txt";
             auto Ndown_out = outputer.createFile(Ndown_filename);
             Ndown_out_vec.push_back(std::move(Ndown_out));
             Ndown_out_vec[idx].printLn("N_down_1", "N_down_2");
@@ -57,7 +57,7 @@ namespace task
         constexpr auto mcs_amount = base_config::mcs_observation + base_config::t_wait_vec.back();
 
         {
-            auto m_dynamic_out = outputer.createFile("m_dynamic_id=" + std::to_string(config.stat_id));
+            auto m_dynamic_out = outputer.createFile("m_dynamic_id=" + std::to_string(config.stat_id) + ".txt");
             m_dynamic_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z");
             constexpr auto queue_size = 500u;
             std::queue<std::array<base_config::spin_t::magn_t, 2u>> queue{};
@@ -99,7 +99,7 @@ namespace task
             };
 
             {
-                auto info_out = outputer.createFile("info_id=" + std::to_string(config.stat_id));
+                auto info_out = outputer.createFile("info_id=" + std::to_string(config.stat_id) + ".txt");
                 info_out.printLn("Dynamic stage duration : ", std::to_string(mcs_on_dynamic_stage), "MCS/s");
             }
         }
