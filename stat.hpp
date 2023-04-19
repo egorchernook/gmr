@@ -159,6 +159,7 @@ struct stater
         std::vector<std::ifstream> input_streams{};
         for (const auto &config : configs)
         {
+            input_streams.clear();
             namespace fs = std::filesystem;
             const auto folder_name = task::createName(config);
             const auto path_to_file = path_to_result_folder / raw_data_folder / folder_name;
