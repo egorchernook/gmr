@@ -15,7 +15,6 @@
 namespace stat
 {
 
-// TODO: не работает с новой статистикой -- исправить
 struct stater
 {
     constexpr static std::string_view stat_folder{"processed"};
