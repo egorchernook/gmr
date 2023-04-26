@@ -110,6 +110,32 @@ namespace task
                 const auto [up, down] = sample.startObservation();
                 j_up_arr += up;
                 j_down_arr += down;
+                for (auto idx = 0u; idx < j_out_vec.size(); ++idx)
+                {
+                    j_out_vec[idx].printLn(j_up_arr[idx], j_down_arr[idx]);
+                }
+                const auto &Nup_arr = sample.N_up_values_arr;
+                for (auto film_idx = 0u; film_idx < 2u; ++film_idx)
+                {
+                    for (auto idx = 0u; idx < Nup_out_vec.size(); ++idx)
+                    {
+                        const auto elem = Nup_arr[film_idx][idx];
+                        Nup_out_vec[idx].print(elem);
+                    }
+                }
+                std::for_each(Nup_out_vec.begin(), Nup_out_vec.end(), [](outputer_t::output_file_t &out)
+                              { out.printLn(); });
+                const auto &Ndown_arr = sample.N_down_values_arr;
+                for (auto film_idx = 0u; film_idx < 2u; ++film_idx)
+                {
+                    for (auto idx = 0u; idx < Ndown_out_vec.size(); ++idx)
+                    {
+                        const auto elem = Ndown_arr[film_idx][idx];
+                        Ndown_out_vec[idx].print(elem);
+                    }
+                }
+                std::for_each(Ndown_out_vec.begin(), Ndown_out_vec.end(), [](outputer_t::output_file_t &out)
+                              { out.printLn(); });
             }
             if (mcs > base_config::t_wait_vec.front())
             {
@@ -122,7 +148,7 @@ namespace task
                 }
 
                 const auto &Nup_arr = sample.N_up_values_arr;
-                for (auto film_idx = 0u; film_idx < 2u; ++film_idx)
+                for (auto film_idx = 0u; film_idx < sample.lattice.nanostructure.size(); ++film_idx)
                 {
                     for (auto idx = 0u; idx < Nup_out_vec.size(); ++idx)
                     {
@@ -134,7 +160,7 @@ namespace task
                               { out.printLn(); });
 
                 const auto &Ndown_arr = sample.N_down_values_arr;
-                for (auto film_idx = 0u; film_idx < 2u; ++film_idx)
+                for (auto film_idx = 0u; film_idx < sample.lattice.nanostructure.size(); ++film_idx)
                 {
                     for (auto idx = 0u; idx < Ndown_out_vec.size(); ++idx)
                     {
