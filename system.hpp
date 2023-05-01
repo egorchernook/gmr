@@ -24,8 +24,6 @@ struct sample_t
     std::array<std::valarray<double>, 2> N_up_values_arr{};
     std::array<std::valarray<double>, 2> N_down_values_arr{};
 
-    std::vector<std::size_t> volumes{};
-
     std::vector<
         qss::spin_transport::nanostructure_type<qss::lattices::three_d::fcc, typename qss::spin_transport::proxy_spin>>
         proxy_lattice_arr;
@@ -38,21 +36,14 @@ struct sample_t
                                                                                    base_config::getDelta(config.N))}
     {
         n_up_vec.reserve(task::base_config::j_stat_amount);
-        n_up_vec.push_back(n_up_);
+        n_up_vec.push_back(std::move(n_up_));
         n_down_vec.reserve(task::base_config::j_stat_amount);
-        n_down_vec.push_back(n_down_);
+        n_down_vec.push_back(std::move(n_down_));
         for (auto idx = 1u; idx < task::base_config::j_stat_amount; ++idx)
         {
             n_up_vec.push_back(n_up_vec[0]);
             n_down_vec.push_back(n_down_vec[0]);
         }
-
-        volumes.reserve(lattice.nanostructure.size());
-        for (auto &film : lattice.nanostructure)
-        {
-            volumes.push_back(film.get_amount_of_nodes());
-        }
-
         {
             std::valarray<double> values(n_up_vec.size());
             std::valarray<double> sizes(n_up_vec.size());
@@ -160,16 +151,12 @@ struct sample_t
 
         for (auto idx = 0u; auto &n_up : n_up_vec)
         {
-            const auto [old, amount] = n_up[0].fill_plane(0, n_up_value);
-            N_up_values_arr[0][idx] -= old / amount;
-            N_up_values_arr[0][idx] += n_up_value;
+            n_up[0].fill_plane(0, n_up_value);
             idx++;
         }
         for (auto idx = 0u; auto &n_down : n_down_vec)
         {
-            const auto [old, amount] = n_down[0].fill_plane(0, n_down_value);
-            N_down_values_arr[0][idx] -= old / amount;
-            N_down_values_arr[0][idx] += n_down_value;
+            n_down[0].fill_plane(0, n_down_value);
             idx++;
         }
 
@@ -180,6 +167,23 @@ struct sample_t
             const auto [j_up, j_down] = qss::algorithms::spin_transport::perform(proxy_lattice);
             j_up_arr[idx] = j_up;
             j_down_arr[idx] = j_down;
+            idx++;
+        }
+        for(auto idx = 0u; auto &proxy_lattice : proxy_lattice_arr) {
+            for(auto &elem: N_up_values_arr) {
+                elem[idx] = 0.0;
+            }
+            for(auto &elem: N_down_values_arr) {
+                elem[idx] = 0.0;
+            }
+            for(auto film_id = 0u; auto &film: proxy_lattice.nanostructure) {
+                const auto volume = static_cast<double>(film.get_amount_of_nodes());
+                for(auto &atom: film) {
+                    N_up_values_arr[film_id][idx] += atom.get_up() / volume;
+                    N_down_values_arr[film_id][idx] += atom.get_down() / volume;
+                }
+                film_id++;
+            }
             idx++;
         }
         constexpr auto area = base_config::L * base_config::L;
