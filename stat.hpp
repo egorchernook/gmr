@@ -148,6 +148,23 @@ struct stater
         std::cout << "GMR calculations ends"
                   << "\n";
     }
+    // TODO: метод для расчёта полярицазии
+    // static void calcP(std::filesystem::path path_to_result_folder) 
+    // {
+    //     std::cout << "Polarization calculations begins\n";
+    //     auto init_configs = task::base_config::getConfigs();
+    //     std::vector<task::base_config::config_t> configs{};
+    //     for (auto &&elem : init_configs)
+    //     {
+    //         if (elem.stat_id == 0 && !is_almost_equals(elem.field, {0.0, 0.0, 0.0}))
+    //         {
+    //             configs.emplace_back(std::move(elem));
+    //         }
+    //     }
+
+
+    //     std::cout << "Polarization calculations ends\n"; 
+    // }
 
   private:
     static std::string create_file_name(const std::string &base_name, const std::size_t id)
