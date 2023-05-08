@@ -10,17 +10,27 @@ def get_vals(file):
     counter: int = 0
     x_ax = list()
 
-    vals = []
+    vals = list()
     for line in file:
         if line != '':
-            vals_line = np.array(line.split('\t'), dtype=np.double)
+            str_line = line.split('\t')
+            try:
+                if str_line.index('\n') != -1:
+                    str_line.pop(str_line.index('\n'))
+            except ValueError:
+                pass
+
+            if not str_line:
+                break
+
+            vals_line = np.array(str_line, dtype=np.double)
             vals.append(vals_line)
             counter += 1
             x_ax.append(counter)
     return x_ax, vals
 
 
-def plot_MR_t_impl(idx, name):
+def plot_MR_t_impl(idx, name, text: str):
     fig, ax = plt.subplots()
     ax.tick_params(direction='in')
     ax.set_xlabel(r'$t - t_w$(mcs/s)')
@@ -40,7 +50,7 @@ def plot_MR_t_impl(idx, name):
                 x_axis, vals = get_vals(file)
                 y_axis: List[np.double] = list()
                 y_axis_err: List[np.double] = list()
-                
+
                 for step in range(len(x_axis)):
                     y_axis.append(vals[step][idx])
                     y_axis_err.append(vals[step][idx + 1])
@@ -52,6 +62,12 @@ def plot_MR_t_impl(idx, name):
                             label=r'$t - t_w$ = ' + tw, errorevery=len(x_axis) // 5, elinewidth=0.2, capsize=3, capthick=0.5)
 
     ax.legend()
+    x_min, x_max = ax.xaxis.get_data_interval()
+    y_min, y_max = ax.yaxis.get_data_interval()
+    x_text = x_max - 2*(np.abs(x_max - x_min) / 10)
+    y_text = y_min + 4*(np.abs(y_max - y_min) / 10)
+
+    plt.text(x=x_text, y=y_text, s=text)
     plt.savefig(name + ".pdf")
     plt.close()
     min_tw = min(tws)
@@ -79,12 +95,12 @@ def find_plateau(vals, n_param=0.95):
     return mean, (sq_sum / (size * (size - 1)))**0.5, size
 
 
-def plot_MR_t(path):
+def plot_MR_t(path, text: str):
     init_dir = os.path.abspath(os.path.curdir)
     os.chdir(path)
 
-    vals_lhc, vals_lhc_stat_err = plot_MR_t_impl(0, "MR_lhc")
-    vals_uhc, vals_uhc_stat_err = plot_MR_t_impl(2, "MR_uhc")
+    vals_lhc, vals_lhc_stat_err = plot_MR_t_impl(0, "MR_lhc", text)
+    vals_uhc, vals_uhc_stat_err = plot_MR_t_impl(2, "MR_uhc", text)
 
     mean_lhs, mean_lhs_mcs_err, size_mean_mcs_lhc = find_plateau(vals_lhc)
     mean_uhs, mean_uhs_mcs_err, size_mean_mcs_uhc = find_plateau(vals_uhc)
@@ -127,7 +143,71 @@ def find_mean_m(path):
     return mean
 
 
-def go(dir):
+def plot_func_t_impl(idx, text: str, name: str, output_file_name: str, axis_name: str = None):
+    if axis_name == None:
+        axis_name = name
+    fig, ax = plt.subplots()
+    ax.tick_params(direction='in')
+    ax.set_xlabel(r'$t$(mcs/s)')
+    ax.set_ylabel(axis_name)
+
+    x_axis: List[np.double] = list()
+    y_axis: List[np.double] = list()
+    y_axis_err: List[np.double] = list()
+    with os.scandir(".") as it:
+        for entry in it:
+            if entry.is_file() and entry.name.find(name) != -1 and entry.name.endswith('txt'):
+                file = open(entry.name, 'r')
+                try:
+                    file.readline()
+                except UnicodeDecodeError:
+                    continue
+
+                x_axis, vals = get_vals(file)
+
+                for step in range(len(x_axis)):
+                    y_axis.append(vals[step][idx])
+                    y_axis_err.append(vals[step][idx + 1])
+
+                file.close()
+                ax.errorbar(x_axis.copy(), y_axis.copy(), yerr=y_axis_err.copy(), errorevery=len(
+                    x_axis) // 5, elinewidth=0.2, capsize=3, capthick=0.5)
+
+    x_min, x_max = ax.xaxis.get_data_interval()
+    y_min, y_max = ax.yaxis.get_data_interval()
+    x_text = x_max - 2*(np.abs(x_max - x_min) / 10)
+    y_text = y_min + 4*(np.abs(y_max - y_min) / 10)
+
+    plt.text(x=x_text, y=y_text, s=text)
+    plt.savefig(output_file_name + ".pdf")
+    plt.close()
+
+    return x_axis, y_axis, y_axis_err
+
+
+def plot_func_t(path, text: str, name: str, axis_name: str = None):
+    init_dir = os.path.abspath(os.path.curdir)
+    os.chdir(path)
+
+    x1, y1, err1 = plot_func_t_impl(0, text, name, name + '_1', axis_name)
+    x2, y2, err2 = plot_func_t_impl(2, text, name, name + '_2', axis_name)
+
+    mean_y1 = np.mean(y1)
+    err_y1 = np.std(y1)
+    mean_err1 = np.mean(err1)
+    err_err1 = np.std(err1)
+
+    mean_y2 = np.mean(y2)
+    err_y2 = np.std(y2)
+    mean_err2 = np.mean(err2)
+    err_err2 = np.std(err2)
+
+    os.chdir(init_dir)
+
+    return (mean_y1, err_y1, mean_err1, err_err1), (mean_y2, err_y2, mean_err2, err_err2)
+
+
+def go_and_draw(dir, text: str):
     h_list: List[float] = list()
     m_list: List[np.ndarray[np.longdouble]] = list()
     j_list: List[np.ndarray[np.longdouble]] = list()
@@ -145,7 +225,7 @@ def go(dir):
             if tail.find('h = (') != -1:
                 h = tail.split('(')[1].split(',')[0].strip()
                 if h.strip() != "0":
-                    lhc, uhc = plot_MR_t(abs_path)
+                    lhc, uhc = plot_MR_t(abs_path, text)
                     mr_lhc_list.append(lhc)
                     mr_uhc_list.append(uhc)
                 else:
@@ -157,7 +237,21 @@ def go(dir):
                 m_line = find_mean_m(abs_path)
                 m_list.append(m_line)
 
-            res_h, res_m, res_mr_lhc, res_mr_uhc = go(abs_path)
+                j_line = plot_func_t(abs_path, text, 'j', 'J')
+                j_list.append(j_line)
+
+                Nup_line = plot_func_t(
+                    abs_path, text, 'Nup', r'$N_{\uparrow}$')
+                Nup_list.append(Nup_line)
+
+                Ndown_line = plot_func_t(
+                    abs_path, text, 'Ndown', r'$N_{\downarrow}$')
+                Ndown_list.append(Ndown_line)
+
+                P_line = plot_func_t(abs_path, text, 'P', 'P')
+                P_list.append(P_line)
+
+            res_h, res_m, res_mr_lhc, res_mr_uhc = go_and_draw(abs_path, text)
             if len(h_list) == 0:
                 h_list = res_h
             elif not len(res_h) == 0:
@@ -248,8 +342,9 @@ for dir_N in os.listdir():
                                 ' ')[2].strip() + "\n"
                         cur = os.curdir
 
-                        h_list, m_list, mr_lhc_list_full, mr_uhc_list_full = go(
-                            cur)
+                        text = N_str + T0_str + Ts_str
+                        h_list, m_list, mr_lhc_list_full, mr_uhc_list_full = go_and_draw(
+                            cur, text)
 
                         mr_lhc_list, mr_lhc_err_list = as_mean_and_err(
                             mr_lhc_list_full)
@@ -317,20 +412,17 @@ for dir_N in os.listdir():
                                             [m_fst_list_err, m_snd_list_err],
                                             [r'$m_{x}^{1}$', r'$m_{x}^{2}$'],
                                             r'$h_{x}(J_{1})$', r'$m_{x}$',
-                                            "m_h",
-                                            N_str + T0_str + Ts_str)
+                                            "m_h", text)
 
                         plot_with_h_as_x_ax([h_list5], [mr_list], [
                                             mr_err_list], [r'$\delta$'],
                                             r'$h_{x}(J_{1})$', r'$\delta ,\%$',
-                                            "MR_h",
-                                            N_str + T0_str + Ts_str)
+                                            "MR_h", text)
 
                         plot_with_h_as_x_ax([h_list8], [pol_list], [
                                             pol_err_list], [r'$P_s$'],
                                             r'$h_{x}(J_{1})$', r'$P_s$',
-                                            "Ps_h",
-                                            N_str + T0_str + Ts_str)
+                                            "Ps_h", text)
 
                         os.chdir("..")
                 os.chdir("..")

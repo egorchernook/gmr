@@ -195,9 +195,9 @@ namespace stat
                     const auto P2_err = (up2_err + down2_err) / (up2 - down2) + (up2_err + down2_err) / (up2 + down2);
 
                     out << P1 << "\t"
-                        << P1_err << "\t"
+                        << std::abs(P1_err) << "\t"
                         << P2 << "\t"
-                        << P2_err << "\n";
+                        << std::abs(P2_err) << "\n";
                 }   
                 out.flush();
                 out.close();
