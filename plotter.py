@@ -6,48 +6,48 @@ import os
 import numpy as np
 
 
-def get_vals(file):
+def get_vals_mr(file):
     counter: int = 0
     x_ax = list()
 
-    gmr_lhc = list()
-    gmr_lhc_err = list()
-    gmr_uhc = list()
-    gmr_uhc_err = list()
+    mr_lhc = list()
+    mr_lhc_err = list()
+    mr_uhc = list()
+    mr_uhc_err = list()
     for line in file:
         if line != '':
-            gmr_lhc_val, gmr_lhc_err_val, gmr_uhc_val, gmr_uhc_err_val = line.split(
+            mr_lhc_val, mr_lhc_err_val, mr_uhc_val, mr_uhc_err_val = line.split(
                 '\t')
-            gmr_lhc.append(float(gmr_lhc_val))
-            gmr_lhc_err.append(float(gmr_lhc_err_val))
-            gmr_uhc.append(float(gmr_uhc_val))
-            gmr_uhc_err.append(float(gmr_uhc_err_val))
+            mr_lhc.append(float(mr_lhc_val))
+            mr_lhc_err.append(float(mr_lhc_err_val))
+            mr_uhc.append(float(mr_uhc_val))
+            mr_uhc_err.append(float(mr_uhc_err_val))
 
             counter += 1
             x_ax.append(counter)
-    return x_ax, gmr_lhc, gmr_lhc_err, gmr_uhc, gmr_uhc_err
+    return x_ax, mr_lhc, mr_lhc_err, mr_uhc, mr_uhc_err
 
 
-def plot_GMR_t_impl(idx, name):
+def plot_MR_t_impl(idx, name):
     fig, ax = plt.subplots()
     ax.tick_params(direction='in')
     ax.set_xlabel(r'$t - t_w$(mcs/s)')
     ax.set_ylabel(r'$\delta$, %')
 
-    gmr_vals: List[np.double] = list()
-    gmr_vals_err: List[np.double] = list()
+    mr_vals: List[np.double] = list()
+    mr_vals_err: List[np.double] = list()
     tw_min = 2**15
     with os.scandir(".") as it:
         for entry in it:
-            if entry.is_file() and entry.name.find("GMR_tw=") != -1:
+            if entry.is_file() and entry.name.find("*MR_tw=") != -1:
                 tw = entry.name[entry.name.index(
                     '=') + 1: entry.name.index('.')]
                 file = open(entry.name, 'r')
                 file.readline()
-                vals = get_vals(file)
+                vals = get_vals_mr(file)
                 if int(tw) < tw_min:
-                    gmr_vals = vals[idx]
-                    gmr_vals_err = vals[idx+1]
+                    mr_vals = vals[idx]
+                    mr_vals_err = vals[idx+1]
                 file.close()
                 ax.errorbar(vals[0], vals[idx], yerr=vals[idx+1],
                             label=r'$t - t_w$ = ' + tw, errorevery=len(vals[0]) // 5, elinewidth=0.2, capsize=3, capthick=0.5)
@@ -55,7 +55,7 @@ def plot_GMR_t_impl(idx, name):
     ax.legend()
     plt.savefig(name + ".pdf")
     plt.close()
-    return gmr_vals, gmr_vals_err
+    return mr_vals, mr_vals_err
 
 
 def find_plateau(vals, n_param=0.95):
@@ -78,12 +78,12 @@ def find_plateau(vals, n_param=0.95):
     return mean, (sq_sum / (size * (size - 1)))**0.5, size
 
 
-def plot_GMR_t(path):
+def plot_MR_t(path):
     init_dir = os.path.abspath(os.path.curdir)
     os.chdir(path)
 
-    vals_lhc, vals_lhc_stat_err = plot_GMR_t_impl(1, "MR_lhc")
-    vals_uhc, vals_uhc_stat_err = plot_GMR_t_impl(3, "MR_uhc")
+    vals_lhc, vals_lhc_stat_err = plot_MR_t_impl(1, "MR_lhc")
+    vals_uhc, vals_uhc_stat_err = plot_MR_t_impl(3, "MR_uhc")
 
     mean_lhs, mean_lhs_mcs_err, size_mean_mcs_lhc = find_plateau(vals_lhc)
     mean_uhs, mean_uhs_mcs_err, size_mean_mcs_uhc = find_plateau(vals_uhc)
@@ -129,8 +129,8 @@ def find_mean_m(path):
 def go(dir):
     h_list: List[float] = list()
     m_list: List[np.ndarray[np.longdouble]] = list()
-    gmr_lhc_list: List[np.ndarray[np.double]] = list()
-    gmr_uhc_list: List[np.ndarray[np.double]] = list()
+    mr_lhc_list: List[np.ndarray[np.double]] = list()
+    mr_uhc_list: List[np.ndarray[np.double]] = list()
     for dr in os.listdir(dir):
         abs_path = os.path.abspath(os.path.join(dir, dr))
 
@@ -140,19 +140,19 @@ def go(dir):
             if tail.find('h = (') != -1:
                 h = tail.split('(')[1].split(',')[0].strip()
                 if h.strip() != "0":
-                    lhc, uhc = plot_GMR_t(abs_path)
-                    gmr_lhc_list.append(lhc)
-                    gmr_uhc_list.append(uhc)
+                    lhc, uhc = plot_MR_t(abs_path)
+                    mr_lhc_list.append(lhc)
+                    mr_uhc_list.append(uhc)
                 else:
-                    gmr_lhc_list.append([0.0, 0.0, 0.0, 0.0])
-                    gmr_uhc_list.append([0.0, 0.0, 0.0, 0.0])
+                    mr_lhc_list.append([0.0, 0.0, 0.0, 0.0])
+                    mr_uhc_list.append([0.0, 0.0, 0.0, 0.0])
 
                 h_list.append(float(h))
 
                 m_line = find_mean_m(abs_path)
                 m_list.append(m_line)
 
-            res_h, res_m, res_gmr_lhc, res_gmr_uhc = go(abs_path)
+            res_h, res_m, res_mr_lhc, res_mr_uhc = go(abs_path)
             if len(h_list) == 0:
                 h_list = res_h
             elif not len(res_h) == 0:
@@ -163,17 +163,17 @@ def go(dir):
             elif not len(res_m) == 0:
                 m_list.append(res_m)
 
-            if len(gmr_lhc_list) == 0:
-                gmr_lhc_list = res_gmr_lhc
-            elif not len(res_gmr_lhc) == 0:
-                gmr_lhc_list.append(res_gmr_lhc)
+            if len(mr_lhc_list) == 0:
+                mr_lhc_list = res_mr_lhc
+            elif not len(res_mr_lhc) == 0:
+                mr_lhc_list.append(res_mr_lhc)
 
-            if len(gmr_uhc_list) == 0:
-                gmr_uhc_list = res_gmr_uhc
-            elif not len(res_gmr_uhc) == 0:
-                gmr_uhc_list.append(res_gmr_uhc)
+            if len(mr_uhc_list) == 0:
+                mr_uhc_list = res_mr_uhc
+            elif not len(res_mr_uhc) == 0:
+                mr_uhc_list.append(res_mr_uhc)
 
-    return (h_list, m_list, gmr_lhc_list, gmr_uhc_list)
+    return (h_list, m_list, mr_lhc_list, mr_uhc_list)
 
 
 def cosort(a, b):
@@ -243,13 +243,13 @@ for dir_N in os.listdir():
                                 ' ')[2].strip() + "\n"
                         cur = os.curdir
 
-                        h_list, m_list, gmr_lhc_list_full, gmr_uhc_list_full = go(
+                        h_list, m_list, mr_lhc_list_full, mr_uhc_list_full = go(
                             cur)
 
-                        gmr_lhc_list, gmr_lhc_err_list = as_mean_and_err(
-                            gmr_lhc_list_full)
-                        gmr_uhc_list, gmr_uhc_err_list = as_mean_and_err(
-                            gmr_uhc_list_full)
+                        mr_lhc_list, mr_lhc_err_list = as_mean_and_err(
+                            mr_lhc_list_full)
+                        mr_uhc_list, mr_uhc_err_list = as_mean_and_err(
+                            mr_uhc_list_full)
 
                         m_fst_list: List[np.longdouble] = list()
                         m_fst_list_err: List[np.longdouble] = list()
@@ -278,34 +278,33 @@ for dir_N in os.listdir():
                         h_list4, m_snd_list_err = cosort(
                             h_list4, m_snd_list_err)
 
-                        h_list5, gmr_lhc_list = cosort(h_list5, gmr_lhc_list)
-                        h_list6, gmr_lhc_err_list = cosort(
-                            h_list6, gmr_lhc_err_list)
+                        h_list5, mr_lhc_list = cosort(h_list5, mr_lhc_list)
+                        h_list6, mr_lhc_err_list = cosort(
+                            h_list6, mr_lhc_err_list)
 
-                        h_list7, gmr_uhc_list = cosort(h_list7, gmr_uhc_list)
-                        h_list8, gmr_uhc_err_list = cosort(
-                            h_list8, gmr_uhc_err_list)
+                        h_list7, mr_uhc_list = cosort(h_list7, mr_uhc_list)
+                        h_list8, mr_uhc_err_list = cosort(
+                            h_list8, mr_uhc_err_list)
 
-                        gmr_list: List[np.double] = list()
-                        gmr_err_list: List[np.double] = list()
+                        mr_list: List[np.double] = list()
+                        mr_err_list: List[np.double] = list()
                         for idx in range(len(m_fst_list)):
                             if m_fst_list[idx] * m_snd_list[idx] > 0:
-                                gmr_list.append(gmr_uhc_list[idx])
-                                gmr_err_list.append(gmr_uhc_err_list[idx])
+                                mr_list.append(mr_uhc_list[idx])
+                                mr_err_list.append(mr_uhc_err_list[idx])
                             else:
-                                gmr_list.append(gmr_lhc_list[idx])
-                                gmr_err_list.append(gmr_lhc_err_list[idx])
+                                mr_list.append(mr_lhc_list[idx])
+                                mr_err_list.append(mr_lhc_err_list[idx])
 
                         pol_list: List[np.double] = list()
                         pol_err_list: List[np.double] = list()
                         pol_list.append(0.0)
                         pol_err_list.append(0.0)
-                        for idx in range(1, len(gmr_list)):
-                            gmr = gmr_list[idx]
-                            value = np.sqrt(gmr / (200.0 + gmr))  # gmr is a %
+                        for idx in range(1, len(mr_list)):
+                            mr = mr_list[idx]
+                            value = np.sqrt(mr / (200.0 + mr))  # mr in %
                             pol_list.append(value)
-                            # ( gmr_err_list[idx] / gmr + gmr_err_list[idx] / (200.0 + gmr)) / (2.0 * np.sqrt(value))
-                            err = 0.0
+                            err = ( mr_err_list[idx] / mr + mr_err_list[idx] / (200.0 + mr)) / (2.0 * np.sqrt(value))
                             pol_err_list.append(err)
 
                         plot_with_h_as_x_ax([h_list1, h_list3], [m_fst_list, m_snd_list],
@@ -315,8 +314,8 @@ for dir_N in os.listdir():
                                             "m_h",
                                             N_str + T0_str + Ts_str)
 
-                        plot_with_h_as_x_ax([h_list5], [gmr_list], [
-                                            gmr_err_list], [r'$\delta$'],
+                        plot_with_h_as_x_ax([h_list5], [mr_list], [
+                                            mr_err_list], [r'$\delta$'],
                                             r'$h_{x}(J_{1})$', r'$\delta ,\%$',
                                             "MR_h",
                                             N_str + T0_str + Ts_str)
