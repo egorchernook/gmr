@@ -6,26 +6,18 @@ import os
 import numpy as np
 
 
-def get_vals_mr(file):
+def get_vals(file):
     counter: int = 0
     x_ax = list()
 
-    mr_lhc = list()
-    mr_lhc_err = list()
-    mr_uhc = list()
-    mr_uhc_err = list()
+    vals = []
     for line in file:
         if line != '':
-            mr_lhc_val, mr_lhc_err_val, mr_uhc_val, mr_uhc_err_val = line.split(
-                '\t')
-            mr_lhc.append(float(mr_lhc_val))
-            mr_lhc_err.append(float(mr_lhc_err_val))
-            mr_uhc.append(float(mr_uhc_val))
-            mr_uhc_err.append(float(mr_uhc_err_val))
-
+            vals_line = np.array(line.split('\t'), dtype=np.double)
+            vals.append(vals_line)
             counter += 1
             x_ax.append(counter)
-    return x_ax, mr_lhc, mr_lhc_err, mr_uhc, mr_uhc_err
+    return x_ax, vals
 
 
 def plot_MR_t_impl(idx, name):
@@ -34,28 +26,37 @@ def plot_MR_t_impl(idx, name):
     ax.set_xlabel(r'$t - t_w$(mcs/s)')
     ax.set_ylabel(r'$\delta$, %')
 
-    mr_vals: List[np.double] = list()
-    mr_vals_err: List[np.double] = list()
-    tw_min = 2**15
+    tws: List[int] = list()
+    mr_vals: List[List[np.double]] = list()
+    mr_vals_err: List[List[np.double]] = list()
     with os.scandir(".") as it:
         for entry in it:
-            if entry.is_file() and entry.name.find("*MR_tw=") != -1:
+            if entry.is_file() and entry.name.find("MR_tw=") != -1:
                 tw = entry.name[entry.name.index(
                     '=') + 1: entry.name.index('.')]
+                tws.append(tw)
                 file = open(entry.name, 'r')
                 file.readline()
-                vals = get_vals_mr(file)
-                if int(tw) < tw_min:
-                    mr_vals = vals[idx]
-                    mr_vals_err = vals[idx+1]
+                x_axis, vals = get_vals(file)
+                y_axis: List[np.double] = list()
+                y_axis_err: List[np.double] = list()
+                
+                for step in range(len(x_axis)):
+                    y_axis.append(vals[step][idx])
+                    y_axis_err.append(vals[step][idx + 1])
+
+                mr_vals.append(y_axis)
+                mr_vals_err.append(y_axis_err)
                 file.close()
-                ax.errorbar(vals[0], vals[idx], yerr=vals[idx+1],
-                            label=r'$t - t_w$ = ' + tw, errorevery=len(vals[0]) // 5, elinewidth=0.2, capsize=3, capthick=0.5)
+                ax.errorbar(x_axis, y_axis, yerr=y_axis_err,
+                            label=r'$t - t_w$ = ' + tw, errorevery=len(x_axis) // 5, elinewidth=0.2, capsize=3, capthick=0.5)
 
     ax.legend()
     plt.savefig(name + ".pdf")
     plt.close()
-    return mr_vals, mr_vals_err
+    min_tw = min(tws)
+    min_idx = tws.index(min_tw)
+    return mr_vals[min_idx], mr_vals_err[min_idx]
 
 
 def find_plateau(vals, n_param=0.95):
@@ -82,8 +83,8 @@ def plot_MR_t(path):
     init_dir = os.path.abspath(os.path.curdir)
     os.chdir(path)
 
-    vals_lhc, vals_lhc_stat_err = plot_MR_t_impl(1, "MR_lhc")
-    vals_uhc, vals_uhc_stat_err = plot_MR_t_impl(3, "MR_uhc")
+    vals_lhc, vals_lhc_stat_err = plot_MR_t_impl(0, "MR_lhc")
+    vals_uhc, vals_uhc_stat_err = plot_MR_t_impl(2, "MR_uhc")
 
     mean_lhs, mean_lhs_mcs_err, size_mean_mcs_lhc = find_plateau(vals_lhc)
     mean_uhs, mean_uhs_mcs_err, size_mean_mcs_uhc = find_plateau(vals_uhc)
@@ -129,6 +130,10 @@ def find_mean_m(path):
 def go(dir):
     h_list: List[float] = list()
     m_list: List[np.ndarray[np.longdouble]] = list()
+    j_list: List[np.ndarray[np.longdouble]] = list()
+    Nup_list: List[np.ndarray[np.longdouble]] = list()
+    Ndown_list: List[np.ndarray[np.longdouble]] = list()
+    P_list: List[np.ndarray[np.longdouble]] = list()
     mr_lhc_list: List[np.ndarray[np.double]] = list()
     mr_uhc_list: List[np.ndarray[np.double]] = list()
     for dr in os.listdir(dir):
@@ -304,7 +309,8 @@ for dir_N in os.listdir():
                             mr = mr_list[idx]
                             value = np.sqrt(mr / (200.0 + mr))  # mr in %
                             pol_list.append(value)
-                            err = ( mr_err_list[idx] / mr + mr_err_list[idx] / (200.0 + mr)) / (2.0 * np.sqrt(value))
+                            err = (
+                                mr_err_list[idx] / mr + mr_err_list[idx] / (200.0 + mr)) / (2.0 * np.sqrt(value))
                             pol_err_list.append(err)
 
                         plot_with_h_as_x_ax([h_list1, h_list3], [m_fst_list, m_snd_list],
