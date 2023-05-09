@@ -173,6 +173,7 @@ namespace stat
                     std::getline(Ndown_in, head);
                 }
                 std::ofstream out{"P.txt"};
+                out << "P_1\t\tP_2\t\n"; 
 
                 while (!Nup_in.eof() && !Ndown_in.eof())
                 {

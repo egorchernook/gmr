@@ -25,8 +25,9 @@ def get_vals(file):
 
             vals_line = np.array(str_line, dtype=np.double)
             vals.append(vals_line)
-            counter += 1
             x_ax.append(counter)
+            counter += 1
+
     return x_ax, vals
 
 
@@ -143,17 +144,18 @@ def find_mean_m(path):
     return mean
 
 
-def plot_func_t_impl(idx, text: str, name: str, output_file_name: str, axis_name: str = None):
+def plot_func_t_impl(text: str, name: str, output_file_name: str,  labels: List[str], axis_name: str = None):
     if axis_name == None:
         axis_name = name
     fig, ax = plt.subplots()
-    ax.tick_params(direction='in')
+    ax.tick_params(direction='in', which='both')
+    ax.minorticks_on()
     ax.set_xlabel(r'$t$(mcs/s)')
     ax.set_ylabel(axis_name)
 
-    x_axis: List[np.double] = list()
-    y_axis: List[np.double] = list()
-    y_axis_err: List[np.double] = list()
+    x_axises: List[List[np.double]] = list()
+    y_axises: List[List[np.double]] = list()
+    y_axises_errors: List[List[np.double]] = list()
     with os.scandir(".") as it:
         for entry in it:
             if entry.is_file() and entry.name.find(name) != -1 and entry.name.endswith('txt'):
@@ -164,56 +166,66 @@ def plot_func_t_impl(idx, text: str, name: str, output_file_name: str, axis_name
                     continue
 
                 x_axis, vals = get_vals(file)
-
-                for step in range(len(x_axis)):
-                    y_axis.append(vals[step][idx])
-                    y_axis_err.append(vals[step][idx + 1])
-
                 file.close()
-                ax.errorbar(x_axis.copy(), y_axis.copy(), yerr=y_axis_err.copy(), errorevery=len(
-                    x_axis) // 5, elinewidth=0.2, capsize=3, capthick=0.5)
+                x_axises.append(x_axis.copy())
+
+                for idx in range(0, len(vals[0]) - 1, 2):
+                    y_axis: List[np.double] = list()
+                    y_axis_err: List[np.double] = list()
+                    for step in range(len(x_axis)):
+                        y_axis.append(vals[step][idx])
+                        y_axis_err.append(vals[step][idx + 1])
+
+                    y_axises.append(y_axis)
+                    y_axises_errors.append(y_axis_err)
+
+                    ax.errorbar(x_axis.copy(), y_axis, yerr=y_axis_err, errorevery=len(
+                        x_axis) // 5, label=labels[idx // 2], elinewidth=0.2, capsize=3, capthick=0.5)
 
     x_min, x_max = ax.xaxis.get_data_interval()
     y_min, y_max = ax.yaxis.get_data_interval()
     x_text = x_max - 2*(np.abs(x_max - x_min) / 10)
-    y_text = y_min + 4*(np.abs(y_max - y_min) / 10)
+    y_text = y_min + 2*(np.abs(y_max - y_min) / 10)
 
+    plt.legend()
     plt.text(x=x_text, y=y_text, s=text)
+    plt.tight_layout()
     plt.savefig(output_file_name + ".pdf")
     plt.close()
 
-    return x_axis, y_axis, y_axis_err
+    return x_axises, y_axises, y_axises_errors
 
 
-def plot_func_t(path, text: str, name: str, axis_name: str = None):
+def plot_func_t(path, text: str, name: str, axis_name: str = None, amount=2):
     init_dir = os.path.abspath(os.path.curdir)
     os.chdir(path)
 
-    x1, y1, err1 = plot_func_t_impl(0, text, name, name + '_1', axis_name)
-    x2, y2, err2 = plot_func_t_impl(2, text, name, name + '_2', axis_name)
+    labels: List[str] = list()
+    for i in range(amount):
+        labels.append(name + str(i + 1))
 
-    mean_y1 = np.mean(y1)
-    err_y1 = np.std(y1)
-    mean_err1 = np.mean(err1)
-    err_err1 = np.std(err1)
+    x, y, y_err = plot_func_t_impl(text, name, name, labels, axis_name)
 
-    mean_y2 = np.mean(y2)
-    err_y2 = np.std(y2)
-    mean_err2 = np.mean(err2)
-    err_err2 = np.std(err2)
+    res: List[np.ndarray[np.double]] = list()
+    for idx in range(amount):
+        mean = np.mean(y[idx])
+        err = np.std(y[idx])
+        mean_err = np.mean(y_err[idx])
+        err_err = np.std(y_err[idx])
+        res.append(np.array([mean, err, mean_err, err_err]))
 
     os.chdir(init_dir)
 
-    return (mean_y1, err_y1, mean_err1, err_err1), (mean_y2, err_y2, mean_err2, err_err2)
+    return res
 
 
 def go_and_draw(dir, text: str):
     h_list: List[float] = list()
     m_list: List[np.ndarray[np.longdouble]] = list()
-    j_list: List[np.ndarray[np.longdouble]] = list()
-    Nup_list: List[np.ndarray[np.longdouble]] = list()
-    Ndown_list: List[np.ndarray[np.longdouble]] = list()
-    P_list: List[np.ndarray[np.longdouble]] = list()
+    j_list: List[List[np.ndarray[np.longdouble]]] = list()
+    Nup_list: List[List[np.ndarray[np.longdouble]]] = list()
+    Ndown_list: List[List[np.ndarray[np.longdouble]]] = list()
+    P_list: List[List[np.ndarray[np.longdouble]]] = list()
     mr_lhc_list: List[np.ndarray[np.double]] = list()
     mr_uhc_list: List[np.ndarray[np.double]] = list()
     for dr in os.listdir(dir):
@@ -251,7 +263,8 @@ def go_and_draw(dir, text: str):
                 P_line = plot_func_t(abs_path, text, 'P', 'P')
                 P_list.append(P_line)
 
-            res_h, res_m, res_mr_lhc, res_mr_uhc = go_and_draw(abs_path, text)
+            res_h, res_m, res_mr_lhc, res_mr_uhc, res_j, res_Nup, res_Ndown, res_P = go_and_draw(
+                abs_path, text)
             if len(h_list) == 0:
                 h_list = res_h
             elif not len(res_h) == 0:
@@ -272,7 +285,27 @@ def go_and_draw(dir, text: str):
             elif not len(res_mr_uhc) == 0:
                 mr_uhc_list.append(res_mr_uhc)
 
-    return (h_list, m_list, mr_lhc_list, mr_uhc_list)
+            if len(j_list) == 0:
+                j_list = res_j
+            elif not len(res_j) == 0:
+                j_list.append(res_j)
+
+            if len(Nup_list) == 0:
+                Nup_list = res_Nup
+            elif not len(res_Nup) == 0:
+                Nup_list.append(res_Nup)
+
+            if len(Ndown_list) == 0:
+                Ndown_list = res_Ndown
+            elif not len(res_Ndown) == 0:
+                Ndown_list.append(res_Ndown)
+
+            if len(P_list) == 0:
+                P_list = res_P
+            elif not len(res_P) == 0:
+                P_list.append(res_P)
+
+    return (h_list, m_list, mr_lhc_list, mr_uhc_list, j_list, Nup_list, Ndown_list, P_list)
 
 
 def cosort(a, b):
@@ -287,27 +320,32 @@ def plot_with_h_as_x_ax(x_axs: List, y_axs: List, yerrs: List, data_labels: List
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
 
-    x_tick_size = abs(np.max(x_axs) - np.min(x_axs)) / 10
+    markers = ['s', 'o', 'v', '^', 'p', '<', 'P', '>', 'h', '*', 'd', 'x', '8']
+
+    for i in range(len(x_axs)):
+        ax.errorbar(x_axs[i], y_axs[i], yerr=yerrs[i], fmt=markers[i]+'-',
+                    label=data_labels[i], elinewidth=0.2, capsize=3, capthick=0.5)
+
+    ax.legend()
+    x_min, x_max = ax.xaxis.get_data_interval()
+    y_min, y_max = ax.yaxis.get_data_interval()
+    x_tick_size = abs(x_max - x_min) / 10
     ax.xaxis.set_major_locator(
         ticker.MultipleLocator(x_tick_size))
     ax.xaxis.set_minor_locator(
         ticker.MultipleLocator(x_tick_size / 2))
 
-    y_tick_size = max(abs(np.max(y_axs) - np.min(y_axs)), np.max(yerrs)) / 10
+    y_tick_size = abs(y_max - y_min) / 10
     ax.yaxis.set_major_locator(
         ticker.MultipleLocator(y_tick_size))
     ax.yaxis.set_minor_locator(
         ticker.MultipleLocator(y_tick_size / 2))
 
-    for i in range(len(x_axs)):
-        ax.errorbar(x_axs[i], y_axs[i], yerr=yerrs[i], fmt='s-',
-                    label=data_labels[i], elinewidth=0.2, capsize=3, capthick=0.5)
-
-    ax.legend()
-    x = np.max(x_axs) - 3*x_tick_size
-    y = np.min(y_axs) + 4*y_tick_size
+    x = x_max - 3*x_tick_size
+    y = y_min + 4*y_tick_size
 
     plt.text(x=x, y=y, s=text)
+    plt.tight_layout()
     plt.savefig(name + ".pdf", dpi=600)
     plt.close()
 
@@ -343,8 +381,10 @@ for dir_N in os.listdir():
                         cur = os.curdir
 
                         text = N_str + T0_str + Ts_str
-                        h_list, m_list, mr_lhc_list_full, mr_uhc_list_full = go_and_draw(
+                        h_list, m_list, mr_lhc_list_full, mr_uhc_list_full, j_list, Nup_list, Ndown_list, P_list = go_and_draw(
                             cur, text)
+
+                        print('\tdraw plots of functions depending on field')
 
                         mr_lhc_list, mr_lhc_err_list = as_mean_and_err(
                             mr_lhc_list_full)
@@ -361,6 +401,62 @@ for dir_N in os.listdir():
                             m_snd_list.append(arr[10])
                             m_snd_list_err.append(arr[11])
 
+                        Nup_fst_list: List[np.double] = list()
+                        Nup_fst_list_err: List[np.double] = list()
+                        Nup_snd_list: List[np.double] = list()
+                        Nup_snd_list_err: List[np.double] = list()
+                        Ndown_fst_list: List[np.double] = list()
+                        Ndown_fst_list_err: List[np.double] = list()
+                        Ndown_snd_list: List[np.double] = list()
+                        Ndown_snd_list_err: List[np.double] = list()
+
+                        P_fst_list: List[np.double] = list()
+                        P_fst_list_err: List[np.double] = list()
+                        P_snd_list: List[np.double] = list()
+                        P_snd_list_err: List[np.double] = list()
+
+                        for idx in range(len(P_list)):
+                            mean = P_list[idx][0][0]
+                            err = P_list[idx][0][1] + \
+                                P_list[idx][0][2] + P_list[idx][0][3]
+                            P_fst_list.append(mean)
+                            P_fst_list_err.append(err)
+
+                        for idx in range(len(P_list)):
+                            mean = P_list[idx][1][0]
+                            err = P_list[idx][1][1] + \
+                                P_list[idx][1][2] + P_list[idx][1][3]
+                            P_snd_list.append(mean)
+                            P_snd_list_err.append(err)
+
+                        for idx in range(len(Nup_list)):
+                            mean = Nup_list[idx][0][0]
+                            err = Nup_list[idx][0][1] + \
+                                Nup_list[idx][0][2] + Nup_list[idx][0][3]
+                            Nup_fst_list.append(mean)
+                            Nup_fst_list_err.append(err)
+
+                        for idx in range(len(Nup_list)):
+                            mean = Nup_list[idx][1][0]
+                            err = Nup_list[idx][1][1] + \
+                                Nup_list[idx][1][2] + Nup_list[idx][1][3]
+                            Nup_snd_list.append(mean)
+                            Nup_snd_list_err.append(err)
+
+                        for idx in range(len(Ndown_list)):
+                            mean = Ndown_list[idx][0][0]
+                            err = Ndown_list[idx][0][1] + \
+                                Ndown_list[idx][0][2] + Ndown_list[idx][0][3]
+                            Ndown_fst_list.append(mean)
+                            Ndown_fst_list_err.append(err)
+
+                        for idx in range(len(Ndown_list)):
+                            mean = Ndown_list[idx][1][0]
+                            err = Ndown_list[idx][1][1] + \
+                                Ndown_list[idx][1][2] + Ndown_list[idx][1][3]
+                            Ndown_snd_list.append(mean)
+                            Ndown_snd_list_err.append(err)
+
                         h_list1 = h_list
                         h_list2 = h_list
                         h_list3 = h_list
@@ -369,6 +465,19 @@ for dir_N in os.listdir():
                         h_list6 = h_list
                         h_list7 = h_list
                         h_list8 = h_list
+                        h_list9 = h_list
+                        h_list10 = h_list
+                        h_list11 = h_list
+                        h_list12 = h_list
+                        h_list13 = h_list
+                        h_list14 = h_list
+                        h_list15 = h_list
+                        h_list16 = h_list
+                        h_list17 = h_list
+                        h_list18 = h_list
+                        h_list19 = h_list
+                        h_list20 = h_list
+                        h_list21 = h_list
 
                         h_list1, m_fst_list = cosort(h_list1, m_fst_list)
                         h_list2, m_fst_list_err = cosort(
@@ -385,6 +494,34 @@ for dir_N in os.listdir():
                         h_list7, mr_uhc_list = cosort(h_list7, mr_uhc_list)
                         h_list8, mr_uhc_err_list = cosort(
                             h_list8, mr_uhc_err_list)
+
+                        h_list9, Nup_fst_list = cosort(h_list9, Nup_fst_list)
+                        h_list10, Nup_fst_list_err = cosort(
+                            h_list10, Nup_fst_list_err)
+
+                        h_list11, Nup_snd_list = cosort(h_list11, Nup_snd_list)
+                        h_list12, Nup_snd_list_err = cosort(
+                            h_list12, Nup_snd_list_err)
+
+                        h_list13, Ndown_fst_list = cosort(
+                            h_list13, Ndown_fst_list)
+                        h_list14, Ndown_fst_list_err = cosort(
+                            h_list14, Ndown_fst_list_err)
+
+                        h_list15, Ndown_snd_list = cosort(
+                            h_list15, Ndown_snd_list)
+                        h_list16, Ndown_snd_list_err = cosort(
+                            h_list16, Ndown_snd_list_err)
+
+                        h_list17, P_fst_list = cosort(
+                            h_list17, P_fst_list)
+                        h_list18, P_fst_list_err = cosort(
+                            h_list18, P_fst_list_err)
+
+                        h_list19, P_snd_list = cosort(
+                            h_list19, P_snd_list)
+                        h_list20, P_snd_list_err = cosort(
+                            h_list20, P_snd_list_err)
 
                         mr_list: List[np.double] = list()
                         mr_err_list: List[np.double] = list()
@@ -408,6 +545,20 @@ for dir_N in os.listdir():
                                 mr_err_list[idx] / mr + mr_err_list[idx] / (200.0 + mr)) / (2.0 * np.sqrt(value))
                             pol_err_list.append(err)
 
+                        MR_from_Ps: List[np.double] = list()
+                        MR_from_Ps_err: List[np.double] = list()
+                        for idx in range(len(P_fst_list)):
+                            p1 = P_fst_list[idx]
+                            p2 = P_snd_list[idx]
+                            p1_err = P_fst_list_err[idx]
+                            p2_err = P_snd_list_err[idx]
+
+                            tmr = 2 * p1 * p2/(1 - p1 * p2)
+                            err = (p1_err + p2_err) / (p1 * p2) + \
+                                (p1_err + p2_err) / (1 - p1 * p2)
+                            MR_from_Ps.append(tmr * 100)
+                            MR_from_Ps_err.append(err * 100)
+    
                         plot_with_h_as_x_ax([h_list1, h_list3], [m_fst_list, m_snd_list],
                                             [m_fst_list_err, m_snd_list_err],
                                             [r'$m_{x}^{1}$', r'$m_{x}^{2}$'],
@@ -422,7 +573,29 @@ for dir_N in os.listdir():
                         plot_with_h_as_x_ax([h_list8], [pol_list], [
                                             pol_err_list], [r'$P_s$'],
                                             r'$h_{x}(J_{1})$', r'$P_s$',
+                                            "Ps_from_MR_h", text)
+
+                        plot_with_h_as_x_ax([h_list9, h_list11, h_list13, h_list15],
+                                            [Nup_fst_list, Nup_snd_list,
+                                                Ndown_fst_list, Ndown_snd_list],
+                                            [Nup_fst_list_err, Nup_snd_list_err,
+                                                Ndown_fst_list_err, Ndown_snd_list_err],
+                                            [r'$N_{\uparrow}^{1}$', r'$N_{\uparrow}^{2}$',
+                                                r'$N_{\downarrow}^{1}$', r'$N_{\downarrow}^{2}$'],
+                                            r'$h_{x}(J_{1})$', r'$N$',
+                                            "N_h", text)
+
+                        plot_with_h_as_x_ax([h_list17, h_list19],
+                                            [P_fst_list, P_snd_list],
+                                            [P_fst_list_err, P_snd_list_err],
+                                            [r'$P_{s}^{1}$', r'$P_{s}^{2}$'],
+                                            r'$h_{x}(J_{1})$', r'$P_{s}$',
                                             "Ps_h", text)
+
+                        plot_with_h_as_x_ax([h_list21], [MR_from_Ps], [MR_from_Ps_err],
+                                            [r'$\delta_{formula}$'], r'$h_{x}(J_{1})$',
+                                            r'$\delta_{formula} ,\%$',
+                                            "MR_form_formula_h", text)
 
                         os.chdir("..")
                 os.chdir("..")
