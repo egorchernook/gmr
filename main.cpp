@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
     }
     stat::stater::makeStat(init_dir, raw_data_folder);
     stat::stater::calcGMR(init_dir);
-
+    stat::stater::calcP(init_dir);
+    
     return 0;
 }
