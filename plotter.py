@@ -541,8 +541,7 @@ for dir_N in os.listdir():
                             mr = mr_list[idx]
                             value = np.sqrt(mr / (200.0 + mr))  # mr in %
                             pol_list.append(value)
-                            err = (
-                                mr_err_list[idx] / mr + mr_err_list[idx] / (200.0 + mr)) / (2.0 * np.sqrt(value))
+                            err = (mr_err_list[idx] / mr + mr_err_list[idx] / (200.0 + mr)) * np.sqrt(value) / 2.0
                             pol_err_list.append(err)
 
                         MR_from_Ps: List[np.double] = list()
@@ -554,8 +553,7 @@ for dir_N in os.listdir():
                             p2_err = P_snd_list_err[idx]
 
                             tmr = 2 * p1 * p2/(1 - p1 * p2)
-                            err = (p1_err + p2_err) / (p1 * p2) + \
-                                (p1_err + p2_err) / (1 - p1 * p2)
+                            err = ((p1_err / p1 + p2_err / p2) + (p1_err / p1 + p2_err / p2)) * tmr 
                             MR_from_Ps.append(tmr * 100)
                             MR_from_Ps_err.append(err * 100)
     
