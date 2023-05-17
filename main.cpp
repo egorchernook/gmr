@@ -10,6 +10,7 @@
 #include <string_view>
 #include <thread>
 #include <vector>
+#include <memory>
 
 #include "config.hpp"
 #include "thread_function.hpp"
@@ -36,53 +37,47 @@ unsigned long parseArgs(int argc, char *argv[])
     return threads_amount;
 }
 
-class tread_pool_t
+class thread_pool_t
 {
-    using config_t = task::base_config::config_t;
-    using task_t = std::packaged_task<config_t(config_t, std::string_view)>;
-
 public:
-    tread_pool_t(unsigned long threads_amount, std::vector<config_t> &&configs, const std::string &dir)
-        : m_configs{configs}, m_dir{dir}
+    thread_pool_t(unsigned long threads_amount)
     {
         m_threads.reserve(threads_amount);
     }
+
+    template <typename F, typename... Args>
+    std::future<std::invoke_result_t<std::decay_t<F>, std::decay_t<Args>...>> add_task(F &&f, Args &&...args)
+    {
+        using Return = std::invoke_result_t<std::decay_t<F>, std::decay_t<Args>...>;
+
+        auto task = std::make_shared<std::packaged_task<Return()>>(std::bind_front(std::forward<F>(f), std::forward<Args>(args)...));
+        std::packaged_task<void(void)> wrapped_task{
+            [task]() -> void
+            {
+                (*task)();
+            }};
+
+        mutex.lock();
+        m_tasks.push(std::move(wrapped_task));
+        mutex.unlock();
+        return task->get_future();
+    }
+
+    std::size_t get_tasks_amount()
+    {
+        std::lock_guard lg{mutex};
+        return m_tasks.size();
+    };
 
     void init()
     {
         for (auto idx = 0u; idx < m_threads.capacity(); ++idx)
         {
-            m_threads.emplace_back(&tread_pool_t::run, this);
+            m_threads.emplace_back(&thread_pool_t::run, this);
         }
     };
 
-    template <class Rep, class Period>
-    std::optional<config_t> get_next_result(const std::chrono::duration<Rep, Period> &duration)
-    {
-        std::lock_guard lg{mutex};
-        if (m_futures.empty())
-        {
-            if (m_configs.empty())
-            {
-                throw std::range_error("There are cannot be more results");
-            }
-            return {};
-        }
-        for (auto iter = m_futures.begin(); iter != m_futures.end(); ++iter)
-        {
-            auto &future = *iter;
-            const auto status = future.wait_for(duration);
-            if (status != std::future_status::timeout)
-            {
-                auto result = future.get();
-                m_futures.erase(iter);
-                return result;
-            }
-        }
-        return {};
-    }
-
-    ~tread_pool_t()
+    ~thread_pool_t()
     {
         std::for_each(m_threads.begin(), m_threads.end(),
                       [](std::thread &thread)
@@ -93,32 +88,28 @@ public:
                           }
                       });
     }
-
+    thread_pool_t(const thread_pool_t&) = delete;
+    thread_pool_t(thread_pool_t&&) = delete;
+    thread_pool_t& operator=(thread_pool_t&) = delete;
+    thread_pool_t& operator=(thread_pool_t&&) = delete;
 protected:
     void run()
     {
-        while (!m_configs.empty())
+        while (!m_tasks.empty())
         {
-            task_t task{task::calculation};
-
             mutex.lock();
-            m_futures.push_back(task.get_future());
-
-            auto config = std::move(m_configs.back());
-            m_configs.pop_back();
-
+            auto task = std::move(m_tasks.front());
+            m_tasks.pop();
             mutex.unlock();
 
-            task(config, m_dir);
+            task();
         }
     }
 
 protected:
     std::mutex mutex;
     std::vector<std::thread> m_threads;
-    std::vector<config_t> m_configs;
-    std::string m_dir;
-    std::vector<std::future<config_t>> m_futures;
+    std::queue<std::packaged_task<void(void)>> m_tasks;
 };
 
 int main(int argc, char *argv[])
@@ -154,27 +145,33 @@ int main(int argc, char *argv[])
                   {
                       std::filesystem::create_directories(std::filesystem::current_path() / task::createName(config));
                   });
-    const auto calculations_amount = configs.size();
-    tread_pool_t thread_pool{threads_amount, std::move(configs), currentDir};
+
+    thread_pool_t thread_pool{threads_amount};
+
+    std::vector<std::future<task::base_config::config_t>> futures{};
+    futures.reserve(configs.size());
+    std::for_each(configs.begin(), configs.end(),
+                  [&futures, &thread_pool, &currentDir](auto config) -> void
+                  {
+                      std::string_view dir = currentDir;
+                      futures.push_back(thread_pool.add_task(task::calculation, std::move(config), std::move(dir)));
+                  });
+
     thread_pool.init();
 
-    for (auto _ = 0u; _ < calculations_amount; ++_)
+    while (!futures.empty())
     {
-        try
+        for (auto iter = futures.begin(); iter != futures.end(); ++iter)
         {
-            auto res = thread_pool.get_next_result(std::chrono::seconds(5));
-            if (res.has_value())
+            auto &future = *iter;
+            const auto status = future.wait_for(std::chrono::seconds(3));
+            if (status != std::future_status::timeout)
             {
-                std::cout << "config : " << res.value() << "\t --- done \n";
+                const auto result = future.get();
+                std::cout << "config : " << result << "\t --- done \n";
+                futures.erase(iter);
+                break;
             }
-            else
-            {
-                _--;
-            }
-        }
-        catch (std::exception &ignored)
-        {
-            _--;
         }
     }
 
