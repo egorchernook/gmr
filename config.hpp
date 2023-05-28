@@ -25,6 +25,7 @@ namespace task
 struct base_config
 {
     using spin_t = qss::heisenberg::spin;
+    using magn_t = spin_t::magn_t;
     using lattice_t = qss::lattices::three_d::fcc<spin_t>;
     using sizes_t = qss::lattices::three_d::sizes_t;
     using ed_t = qss::electron_dencity;
@@ -36,10 +37,9 @@ struct base_config
         const std::uint8_t N;
         const double T_creation;
         const double T_sample;
-        const typename base_config::spin_t::magn_t field;
+        const magn_t field;
 
-        config_t(std::uint16_t stat_id_, std::uint8_t N_, double T_creation_, double T_sample_,
-                 typename base_config::spin_t::magn_t field_)
+        config_t(std::uint16_t stat_id_, std::uint8_t N_, double T_creation_, double T_sample_, magn_t field_)
             : stat_id{stat_id_}, N{N_}, T_creation{T_creation_}, T_sample{T_sample_}, field{field_}
         {
         }
@@ -55,25 +55,25 @@ struct base_config
     {
         return deltas[--N];
     }
-    constexpr static std::uint16_t m_stat_amount = 2; // количество статистических прогонок
-    constexpr static std::uint16_t j_stat_amount = 4;
+    constexpr static std::uint16_t m_stat_amount = 5; // количество статистических прогонок
+    constexpr static std::uint16_t j_stat_amount = 10;
     constexpr static std::uint64_t mcs_init = 500;
-    constexpr static std::uint64_t mcs_observation = 1'000;
-    constexpr static std::array N_size_vec{3u};
+    constexpr static std::uint64_t mcs_observation = 5'000;
+    constexpr static std::array N_size_vec{7u};
     constexpr static std::array T_creation_vec{0.67};
     constexpr static std::array T_sample_vec{0.95};
-    constexpr static std::array t_wait_vec{100u, 200u};//, 400u, 1000u}; // должен быть отсортирован по увеличению
+    constexpr static std::array t_wait_vec{100u, 200u, 400u, 1000u}; // должен быть отсортирован по увеличению
     constexpr static std::array magn_field_vec{
-        typename spin_t::magn_t{0.0, 0.0, 0.0}, typename spin_t::magn_t{0.5, 0.0, 0.0},
-        /*typename spin_t::magn_t{0.6, 0.0, 0.0}, typename spin_t::magn_t{0.65, 0.0, 0.0},
-        typename spin_t::magn_t{0.7, 0.0, 0.0}, typename spin_t::magn_t{0.75, 0.0, 0.0},
-        typename spin_t::magn_t{0.8, 0.0, 0.0}, typename spin_t::magn_t{0.85, 0.0, 0.0},
-        typename spin_t::magn_t{0.9, 0.0, 0.0}, typename spin_t::magn_t{0.95, 0.0, 0.0},*/
-        typename spin_t::magn_t{1.0, 0.0, 0.0}, typename spin_t::magn_t{2.0, 0.0, 0.0}};
+        magn_t{0.0, 0.0, 0.0}, magn_t{0.5, 0.0, 0.0},
+        magn_t{0.6, 0.0, 0.0}, magn_t{0.65, 0.0, 0.0},
+        magn_t{0.7, 0.0, 0.0}, magn_t{0.75, 0.0, 0.0},
+        magn_t{0.8, 0.0, 0.0}, magn_t{0.85, 0.0, 0.0},
+        magn_t{0.9, 0.0, 0.0}, magn_t{0.95, 0.0, 0.0},
+        magn_t{1.0, 0.0, 0.0}, magn_t{2.0, 0.0, 0.0}};
 
-    constexpr static auto createHamilton_f(const typename spin_t::magn_t &h, double Delta)
+    constexpr static auto createHamilton_f(const magn_t &h, double Delta)
     {
-        return [&h, Delta](const typename spin_t::magn_t &sum, const spin_t &spin_old,
+        return [&h, Delta](const magn_t &sum, const spin_t &spin_old,
                            const spin_t &spin_new) noexcept -> double {
             const auto sum_with_field = sum + h;
             auto diff = spin_old - spin_new;
