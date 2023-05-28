@@ -403,10 +403,15 @@ for dir_N in os.listdir():
                             m_fst_list.append(arr[2])
                             m_fst_list_err.append(arr[3])
 
-                            m_plane_fst_list.append(
-                                np.sqrt(arr[2]**2 + arr[4]**2))
-                            m_plane_snd_list.append(
-                                np.sqrt(arr[10]**2 + arr[12]**2))
+                            m_fst = np.sqrt(arr[2]**2 + arr[4]**2)
+                            m_plane_fst_list.append(m_fst)
+                            m_plane_fst_list_err.append(
+                                abs(arr[2]*arr[3] + arr[4]*arr[5]) / m_fst)
+
+                            m_snd = np.sqrt(arr[10]**2 + arr[12]**2)
+                            m_plane_snd_list.append(m_snd)
+                            m_plane_snd_list_err.append(
+                                abs(arr[10]*arr[11] + arr[12]*arr[13]) / m_snd)
 
                             m_snd_list.append(arr[10])
                             m_snd_list_err.append(arr[11])
@@ -490,6 +495,8 @@ for dir_N in os.listdir():
                         h_list21 = h_list
                         h_list22 = h_list
                         h_list23 = h_list
+                        h_list24 = h_list
+                        h_list25 = h_list
 
                         h_list1, m_fst_list = cosort(h_list1, m_fst_list)
                         h_list2, m_fst_list_err = cosort(
@@ -536,13 +543,21 @@ for dir_N in os.listdir():
                             h_list20, P_snd_list_err)
 
                         h_list22, m_plane_fst_list = cosort(
-                            h_list19, m_plane_fst_list)
+                            h_list22, m_plane_fst_list)
                         h_list23, m_plane_snd_list = cosort(
-                            h_list20, m_plane_snd_list)
+                            h_list23, m_plane_snd_list)
+                        h_list24, m_plane_fst_list_err = cosort(
+                            h_list24, m_plane_fst_list_err)
+                        h_list25, m_plane_snd_list_err = cosort(
+                            h_list25, m_plane_snd_list_err)
 
                         m_plane_sum_list: List[np.longdouble] = list()
+                        m_plane_sum_list_err: List[np.longdouble] = list()
                         for idx in range(len(m_plane_fst_list)):
-                            m_plane_sum_list.append((m_plane_fst_list[idx] + m_plane_snd_list[idx]) / 2)
+                            m_plane_sum_list.append(
+                                (m_plane_fst_list[idx] + m_plane_snd_list[idx]) / 2)
+                            m_plane_sum_list_err.append(
+                                (m_plane_fst_list_err[idx] + m_plane_snd_list_err[idx]) / 2)
 
                         mr_list: List[np.double] = list()
                         mr_err_list: List[np.double] = list()
@@ -584,7 +599,7 @@ for dir_N in os.listdir():
                                             [m_fst_list_err, m_snd_list_err],
                                             [r'$m_{x}^{1}$', r'$m_{x}^{2}$'],
                                             r'$h_{x}(J_{1})$', r'$m_{x}$',
-                                            "m_h", text)
+                                            "mx_h", text)
 
                         plot_with_h_as_x_ax([h_list5], [mr_list], [
                                             mr_err_list], [r'$\delta$'],
@@ -618,7 +633,13 @@ for dir_N in os.listdir():
                                             r'$\delta_{formula} ,\%$',
                                             "MR_form_formula_h", text)
 
-                        plot_with_h_as_x_ax([h_list22], [m_plane_sum_list], [np.zeros(len(m_plane_sum_list))],
+                        plot_with_h_as_x_ax([h_list22, h_list23], [m_plane_fst_list, m_plane_snd_list],
+                                            [m_plane_fst_list_err, m_plane_snd_list_err], 
+                                            [r'$m^{1}$', r'$m^{2}$'],
+                                            r'$h_{x}(J_{1})$', r'$m$',
+                                            "m_h", text)
+
+                        plot_with_h_as_x_ax([h_list22], [m_plane_sum_list], [m_plane_sum_list_err],
                                             [r'$sum\_of\_m_{planes}^{1,2}$'],
                                             r'$h_{x}(J_{1})$', r'$sum\_of\_m_{planes}^{1,2}$',
                                             "P_from_m_planes_h", text)
