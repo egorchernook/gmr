@@ -101,8 +101,10 @@ namespace task
             std::for_each(proxy_lattice_arr.begin(), proxy_lattice_arr.end(),
                           [this](auto &proxy_lattice)
                           { proxy_lattice.T = config.T_sample; });
-            const auto temp_magn1 = std::abs(lattice.magns[0].x * lattice.magns[0].x + lattice.magns[0].y * lattice.magns[0].x);
-            const auto temp_magn2 = -std::abs(lattice.magns[1].x * lattice.magns[1].x + lattice.magns[1].y * lattice.magns[1].x);
+            // const auto temp_magn1 = std::abs(lattice.magns[0].x * lattice.magns[0].x + lattice.magns[0].y * lattice.magns[0].x);
+            // const auto temp_magn2 = -std::abs(lattice.magns[1].x * lattice.magns[1].x + lattice.magns[1].y * lattice.magns[1].x);
+            const auto temp_magn1 = lattice.magns[0].x;
+            const auto temp_magn2 = lattice.magns[1].x;
 
             const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
             const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};
@@ -144,8 +146,10 @@ namespace task
         }
         std::array<std::valarray<double>, 2> makeJCalc()
         {
-            const auto temp_magn1 = std::abs(lattice.magns[0].x * lattice.magns[0].x + lattice.magns[0].y * lattice.magns[0].y);
-            const auto temp_magn2 = -std::abs(lattice.magns[1].x * lattice.magns[1].x + lattice.magns[1].y * lattice.magns[1].y);
+            // const auto temp_magn1 = std::abs(lattice.magns[0].x * lattice.magns[0].x + lattice.magns[0].y * lattice.magns[0].y);
+            // const auto temp_magn2 = -std::abs(lattice.magns[1].x * lattice.magns[1].x + lattice.magns[1].y * lattice.magns[1].y);
+            const auto temp_magn1 = lattice.magns[0].x;
+            const auto temp_magn2 = lattice.magns[1].x;
 
             const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
             const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};
