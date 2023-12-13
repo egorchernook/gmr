@@ -190,11 +190,16 @@ namespace stat
                     const auto [up1, up1_err, up2, up2_err] = parse_line<4>(up_line);
                     const auto [down1, down1_err, down2, down2_err] = parse_line<4>(down_line);
 
-                    const auto P1 = (up1 - down1) / (up1 + down1);
-                    const auto P1_err = (up1_err + down1_err) / (up1 - down1) + (up1_err + down1_err) / (up1 + down1);
-                    const auto P2 = (up2 - down2) / (up2 + down2);
-                    const auto P2_err = (up2_err + down2_err) / (up2 - down2) + (up2_err + down2_err) / (up2 + down2);
+                    const auto _P1 = (up1 - down1) / (up1 + down1);
+                    const auto _P1_err = (up1_err + down1_err) / (up1 - down1) + (up1_err + down1_err) / (up1 + down1);
+                    const auto _P2 = (up2 - down2) / (up2 + down2);
+                    const auto _P2_err = (up2_err + down2_err) / (up2 - down2) + (up2_err + down2_err) / (up2 + down2);
 
+                    const auto P1 = _P1 * A_fb;
+                    const auto P1_err = _P1_err * A_fb;
+                    const auto P2 = _P2 * A_fb;
+                    const auto P2_err = _P2_err * A_fb;
+                    
                     out << P1 << "\t"
                         << std::abs(P1_err) << "\t"
                         << P2 << "\t"

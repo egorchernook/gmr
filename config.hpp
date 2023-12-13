@@ -49,7 +49,7 @@ struct base_config
     // линейный размер
     constexpr static std::uint16_t L = 64;
     // обменный интеграл взаимодействия плёнок
-    constexpr static double J2 = 0.0;
+    constexpr static double J2 = -0.05;
     constexpr static std::array<double, 10> deltas{0.5, 0.6, 0.636, 0.7, 0.734, 0.77, 0.816, 0.85, 0.882, 0.9};
     constexpr static double getDelta(std::uint16_t N)
     {
@@ -65,11 +65,23 @@ struct base_config
     constexpr static std::array t_wait_vec{100u, 200u, 400u, 1000u}; // должен быть отсортирован по увеличению
     constexpr static std::array magn_field_vec{
         magn_t{0.0, 0.0, 0.0}, magn_t{0.5, 0.0, 0.0},
-        magn_t{0.6, 0.0, 0.0}, magn_t{0.65, 0.0, 0.0},
-        magn_t{0.7, 0.0, 0.0}, magn_t{0.75, 0.0, 0.0},
-        magn_t{0.8, 0.0, 0.0}, magn_t{0.85, 0.0, 0.0},
-        magn_t{0.9, 0.0, 0.0}, magn_t{0.95, 0.0, 0.0},
+        magn_t{0.6, 0.0, 0.0}, //magn_t{0.65, 0.0, 0.0},
+        magn_t{0.7, 0.0, 0.0}, //magn_t{0.75, 0.0, 0.0},
+        magn_t{0.8, 0.0, 0.0}, //magn_t{0.85, 0.0, 0.0},
+        magn_t{0.9, 0.0, 0.0}, //magn_t{0.95, 0.0, 0.0},
         magn_t{1.0, 0.0, 0.0}, magn_t{2.0, 0.0, 0.0}};
+
+    constexpr static double d;
+    constexpr static double U0;
+    constexpr static double k;
+    constexpr static double k_up;
+    constexpr static double k_down;
+
+
+    constexpr inline double coef = e*k*(k*k + k_up*k_down)*(k_up + k_down)/s(pi*(k*k + k_up*k_up)*(k*k + k_down*k_down));
+    constexpr static double G_fbf = k/d * coef*coef * std::exp(-2*k*d);
+
+    constexpr static double A_fb = (k*k - k_up*k_down)/(k*k + k_up*k_down);
 
     constexpr static auto createHamilton_f(const magn_t &h, double Delta)
     {
