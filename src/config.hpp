@@ -8,17 +8,17 @@
 #include <string_view>
 #include <vector>
 
-#include "qss/src/algorithms/Metropolis.hpp"
-#include "qss/src/algorithms/spin_transport.hpp"
-#include "qss/src/lattices/3d/3d.hpp"
-#include "qss/src/lattices/3d/fcc.hpp"
-#include "qss/src/lattices/borders_conditions.hpp"
-#include "qss/src/models/electron_dencity.hpp"
-#include "qss/src/models/heisenberg.hpp"
-#include "qss/src/systems/multilayer.hpp"
-#include "qss/src/systems/multilayer_system.hpp"
-#include "qss/src/utility/functions.hpp"
-#include "qss/src/utility/quantities.hpp"
+#include "algorithms/Metropolis.hpp"
+#include "algorithms/spin_transport.hpp"
+#include "lattices/3d/3d.hpp"
+#include "lattices/3d/fcc.hpp"
+#include "lattices/borders_conditions.hpp"
+#include "models/electron_dencity.hpp"
+#include "models/heisenberg.hpp"
+#include "systems/multilayer.hpp"
+#include "systems/multilayer_system.hpp"
+#include "utility/functions.hpp"
+#include "utility/quantities.hpp"
 
 namespace task
 {
@@ -47,7 +47,7 @@ struct base_config
 
     base_config() = delete;
     // линейный размер
-    constexpr static std::uint16_t L = 64;
+    constexpr static std::uint16_t L = 32;
     // обменный интеграл взаимодействия плёнок
     constexpr static double J2 = -0.05;
     constexpr static std::array<double, 10> deltas{0.5, 0.6, 0.636, 0.7, 0.734, 0.77, 0.816, 0.85, 0.882, 0.9};
@@ -55,20 +55,20 @@ struct base_config
     {
         return deltas[--N];
     }
-    constexpr static std::uint16_t m_stat_amount = 5; // количество статистических прогонок
-    constexpr static std::uint16_t j_stat_amount = 10;
+    constexpr static std::uint16_t m_stat_amount = 2; // количество статистических прогонок
+    constexpr static std::uint16_t j_stat_amount = 3;
     constexpr static std::uint64_t mcs_init = 500;
-    constexpr static std::uint64_t mcs_observation = 5'000;
+    constexpr static std::uint64_t mcs_observation = 1'000;
     constexpr static std::array N_size_vec{7u};
     constexpr static std::array T_creation_vec{0.67};
     constexpr static std::array T_sample_vec{0.95};
-    constexpr static std::array t_wait_vec{100u, 200u, 400u, 1000u}; // должен быть отсортирован по увеличению
+    constexpr static std::array t_wait_vec{100u, 200u}; //, 400u, 1000u}; // должен быть отсортирован по увеличению
     constexpr static std::array magn_field_vec{
         magn_t{0.0, 0.0, 0.0}, magn_t{0.5, 0.0, 0.0},
-        magn_t{0.6, 0.0, 0.0}, //magn_t{0.65, 0.0, 0.0},
-        magn_t{0.7, 0.0, 0.0}, //magn_t{0.75, 0.0, 0.0},
-        magn_t{0.8, 0.0, 0.0}, //magn_t{0.85, 0.0, 0.0},
-        magn_t{0.9, 0.0, 0.0}, //magn_t{0.95, 0.0, 0.0},
+        // magn_t{0.6, 0.0, 0.0}, //magn_t{0.65, 0.0, 0.0},
+        // magn_t{0.7, 0.0, 0.0}, //magn_t{0.75, 0.0, 0.0},
+        // magn_t{0.8, 0.0, 0.0}, //magn_t{0.85, 0.0, 0.0},
+        // magn_t{0.9, 0.0, 0.0}, //magn_t{0.95, 0.0, 0.0},
         magn_t{1.0, 0.0, 0.0}, magn_t{2.0, 0.0, 0.0}};
 
     constexpr static double A_fb = 0.01;
