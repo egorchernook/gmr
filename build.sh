@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-cmake -B build -DCMAKE_CXX_COMPILER=clang++
+cmake -B build
 cmake --build build
