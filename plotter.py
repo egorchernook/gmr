@@ -179,7 +179,7 @@ def plot_func_t_impl(text: str, name: str, output_file_name: str,  labels: List[
                     y_axises.append(y_axis)
                     y_axises_errors.append(y_axis_err)
 
-                    ax.errorbar(x_axis.copy(), y_axis, yerr=y_axis_err, errorevery=len(
+                    ax.errorbar(x_axis.copy()[50:], y_axis[50:], yerr=y_axis_err[50:], errorevery=len(
                         x_axis) // 5, label=labels[idx // 2], elinewidth=0.2, capsize=3, capthick=0.5)
 
     x_min, x_max = ax.xaxis.get_data_interval()
@@ -360,19 +360,20 @@ def as_mean_and_err(vals):
     return mean, err
 
 
+print("Start")
 for dir_N in os.listdir():
-
+    print(f"Dir: {dir_N}")
     if dir_N.find("N = ") != -1:
         os.chdir(dir_N)
         N_str = "N = " + os.path.split(dir_N)[1].split(' ')[2].strip() + "\n"
         for dir_T0 in os.listdir():
-
+            print(f"Dir: {dir_T0}")
             if dir_T0.find("T_creation = ") != -1:
                 os.chdir(dir_T0)
                 T0_str = r"$T_{creation}$ = " + \
                     os.path.split(dir_T0)[1].split(' ')[2].strip() + "\n"
                 for dir_Ts in os.listdir():
-
+                    print(f"Dir: {dir_Ts}")
                     if dir_Ts.find("T_sample = ") != -1:
                         os.chdir(dir_Ts)
                         Ts_str = r"$T_{sample}$ = " + \
@@ -601,13 +602,13 @@ for dir_N in os.listdir():
                                             r'$h_{x}(J_{1})$', r'$m_{x}$',
                                             "mx_h", text)
 
-                        plot_with_h_as_x_ax([h_list5], [mr_list], [
-                                            mr_err_list], [r'$\delta$'],
+                        plot_with_h_as_x_ax([h_list5], [mr_list], [np.zeros(len(MR_from_Ps))], #[mr_err_list], 
+                                            [r'$\delta$'],
                                             r'$h_{x}(J_{1})$', r'$\delta ,\%$',
                                             "MR_h", text)
 
-                        plot_with_h_as_x_ax([h_list8], [pol_list], [
-                                            pol_err_list], [r'$P_s$'],
+                        plot_with_h_as_x_ax([h_list8], [pol_list], [np.zeros(len(pol_list))], #[pol_err_list], 
+                                            [r'$P_s$'],
                                             r'$h_{x}(J_{1})$', r'$P_s$',
                                             "Ps_from_MR_h", text)
 
@@ -629,9 +630,9 @@ for dir_N in os.listdir():
                                             "Ps_h", text)
 
                         plot_with_h_as_x_ax([h_list21], [MR_from_Ps], [MR_from_Ps_err],
-                                            [r'$\delta_{formula}$'], r'$h_{x}(J_{1})$',
-                                            r'$\delta_{formula} ,\%$',
-                                            "MR_form_formula_h", text)
+                                            [r'$\delta_{pol}$'], r'$h_{x}(J_{1})$',
+                                            r'$\delta_{pol} ,\%$',
+                                            "MR_from_polarization_h", text)
 
                         plot_with_h_as_x_ax([h_list22, h_list23], [m_plane_fst_list, m_plane_snd_list],
                                             [m_plane_fst_list_err, m_plane_snd_list_err], 

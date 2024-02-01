@@ -195,10 +195,10 @@ namespace stat
                     const auto _P2 = (up2 - down2) / (up2 + down2);
                     const auto _P2_err = (up2_err + down2_err) / (up2 - down2) + (up2_err + down2_err) / (up2 + down2);
 
-                    const auto P1 = _P1 * A_fb;
-                    const auto P1_err = _P1_err * A_fb;
-                    const auto P2 = _P2 * A_fb;
-                    const auto P2_err = _P2_err * A_fb;
+                    const auto P1 = _P1 * task::base_config::A_fb;
+                    const auto P1_err = _P1_err * task::base_config::A_fb;
+                    const auto P2 = _P2 * task::base_config::A_fb;
+                    const auto P2_err = _P2_err * task::base_config::A_fb;
                     
                     out << P1 << "\t"
                         << std::abs(P1_err) << "\t"

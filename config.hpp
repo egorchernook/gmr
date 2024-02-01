@@ -71,17 +71,7 @@ struct base_config
         magn_t{0.9, 0.0, 0.0}, //magn_t{0.95, 0.0, 0.0},
         magn_t{1.0, 0.0, 0.0}, magn_t{2.0, 0.0, 0.0}};
 
-    constexpr static double d;
-    constexpr static double U0;
-    constexpr static double k;
-    constexpr static double k_up;
-    constexpr static double k_down;
-
-
-    constexpr inline double coef = e*k*(k*k + k_up*k_down)*(k_up + k_down)/s(pi*(k*k + k_up*k_up)*(k*k + k_down*k_down));
-    constexpr static double G_fbf = k/d * coef*coef * std::exp(-2*k*d);
-
-    constexpr static double A_fb = (k*k - k_up*k_down)/(k*k + k_up*k_down);
+    constexpr static double A_fb = 0.01;
 
     constexpr static auto createHamilton_f(const magn_t &h, double Delta)
     {
