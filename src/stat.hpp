@@ -218,9 +218,12 @@ namespace stat
             std::istringstream stream{line};
             const auto double_line = get_double_line(stream);
             std::array<double, amount> res{};
-            for(auto idx =0u; auto& elem: double_line) {
-                res[idx] = elem;
-                idx++;
+            {
+                auto idx =0u;
+                for(auto& elem: double_line) {
+                    res[idx] = elem;
+                    idx++;
+                }
             }
             return res;
         }
@@ -260,7 +263,7 @@ namespace stat
                 auto is_end = [&input_streams]() noexcept -> bool
                 {
                     bool res = false;
-                    std::ranges::for_each(input_streams.begin(), input_streams.end(),
+                    std::for_each(input_streams.begin(), input_streams.end(),
                                           [&res](auto &elem) noexcept -> void
                                           { res += elem.eof(); });
                     return res;

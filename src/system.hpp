@@ -47,36 +47,42 @@ namespace task
             {
                 std::valarray<double> values(n_up_vec.size());
                 std::valarray<double> sizes(n_up_vec.size());
-                for (auto idx = 0u; auto &film : n_up_vec[0])
                 {
-                    sizes[idx] = static_cast<double>(film.get_amount_of_nodes());
-                    double value = 0.0;
-                    for (auto &elem : film)
+                    auto idx = 0u;
+                    for (auto &film : n_up_vec[0])
                     {
-                        value += static_cast<double>(elem);
+                        sizes[idx] = static_cast<double>(film.get_amount_of_nodes());
+                        double value = 0.0;
+                        for (auto &elem : film)
+                        {
+                            value += static_cast<double>(elem);
+                        }
+                        values[idx] = value;
+                        idx++;
                     }
-                    values[idx] = value;
-                    idx++;
+                    const auto Nup = values / sizes;
+                    N_up_values_arr.fill(Nup);
                 }
-                const auto Nup = values / sizes;
-                N_up_values_arr.fill(Nup);
             }
             {
                 std::valarray<double> values(n_down_vec.size());
                 std::valarray<double> sizes(n_down_vec.size());
-                for (auto idx = 0u; auto &film : n_down_vec[0])
                 {
-                    sizes[idx] = static_cast<double>(film.get_amount_of_nodes());
-                    double value = 0.0;
-                    for (auto &elem : film)
+                    auto idx = 0u;
+                    for (auto &film : n_down_vec[0])
                     {
-                        value += static_cast<double>(elem);
+                        sizes[idx] = static_cast<double>(film.get_amount_of_nodes());
+                        double value = 0.0;
+                        for (auto &elem : film)
+                        {
+                            value += static_cast<double>(elem);
+                        }
+                        values[idx] = value;
+                        idx++;
                     }
-                    values[idx] = value;
-                    idx++;
+                    const auto Ndown = values / sizes;
+                    N_down_values_arr.fill(Ndown);
                 }
-                const auto Ndown = values / sizes;
-                N_down_values_arr.fill(Ndown);
             }
 
             proxy_lattice_arr.reserve(task::base_config::j_stat_amount);
@@ -109,37 +115,48 @@ namespace task
             const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
             const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};
 
-            for (auto idx = 0u; auto &n_up : n_up_vec)
             {
-                for (auto idx_film = 0u; auto &film : n_up)
+                auto idx = 0u;
+                for (auto &n_up : n_up_vec)
                 {
-                    film.fill(n_up_value);
-                    const auto film_volume = static_cast<double>(film.get_amount_of_nodes());
-                    N_up_values_arr[idx_film][idx] = n_up_value / film_volume;
-                    idx_film++;
+                    auto idx_film = 0u;
+                    for ( auto &film : n_up)
+                    {
+                        film.fill(n_up_value);
+                        const auto film_volume = static_cast<double>(film.get_amount_of_nodes());
+                        N_up_values_arr[idx_film][idx] = n_up_value / film_volume;
+                        idx_film++;
+                    }
+                    idx++;
                 }
-                idx++;
-            };
-            for (auto idx = 0u; auto &n_down : n_down_vec)
+            }
             {
-                for (auto idx_film = 0u; auto &film : n_down)
+                auto idx = 0u; 
+                for (auto &n_down : n_down_vec)
                 {
-                    film.fill(n_down_value);
-                    const auto film_volume = static_cast<double>(film.get_amount_of_nodes());
-                    N_down_values_arr[idx_film][idx] = n_down_value / film_volume;
-                    idx_film++;
+                    auto idx_film = 0u;
+                    for (auto &film : n_down)
+                    {
+                        film.fill(n_down_value);
+                        const auto film_volume = static_cast<double>(film.get_amount_of_nodes());
+                        N_down_values_arr[idx_film][idx] = n_down_value / film_volume;
+                        idx_film++;
+                    }
+                    idx++;
                 }
-                idx++;
-            };
+            }
 
             std::valarray<double> j_up_arr(task::base_config::j_stat_amount);
             std::valarray<double> j_down_arr(task::base_config::j_stat_amount);
-            for (auto idx = 0u; auto &proxy_lattice : proxy_lattice_arr)
             {
-                const auto [j_up, j_down] = qss::algorithms::spin_transport::perform(proxy_lattice);
-                j_up_arr[idx] = j_up;
-                j_down_arr[idx] = j_down;
-                idx++;
+                auto idx = 0u; 
+                for (auto &proxy_lattice : proxy_lattice_arr)
+                {
+                    const auto [j_up, j_down] = qss::algorithms::spin_transport::perform(proxy_lattice);
+                    j_up_arr[idx] = j_up;
+                    j_down_arr[idx] = j_down;
+                    idx++;
+                }
             }
             constexpr auto area = base_config::L * base_config::L;
             return {j_up_arr / area, j_down_arr / area};
@@ -154,47 +171,59 @@ namespace task
             const typename base_config::ed_t n_up_value{0.5 * (1.0 + temp_magn1)};
             const typename base_config::ed_t n_down_value{0.5 * (1.0 - temp_magn2)};
 
-            for (auto idx = 0u; auto &n_up : n_up_vec)
             {
-                n_up[0].fill_plane(0, n_up_value);
-                idx++;
+                auto idx = 0u; 
+                for (auto &n_up : n_up_vec)
+                {
+                    n_up[0].fill_plane(0, n_up_value);
+                    idx++;
+                }
             }
-            for (auto idx = 0u; auto &n_down : n_down_vec)
             {
-                n_down[0].fill_plane(0, n_down_value);
-                idx++;
+                auto idx = 0u;
+                for ( auto &n_down : n_down_vec)
+                {
+                    n_down[0].fill_plane(0, n_down_value);
+                    idx++;
+                }
             }
-
             std::valarray<double> j_up_arr(task::base_config::j_stat_amount);
             std::valarray<double> j_down_arr(task::base_config::j_stat_amount);
-            for (auto idx = 0u; auto &proxy_lattice : proxy_lattice_arr)
             {
-                const auto [j_up, j_down] = qss::algorithms::spin_transport::perform(proxy_lattice);
-                j_up_arr[idx] = j_up;
-                j_down_arr[idx] = j_down;
-                idx++;
+                auto idx = 0u;
+                for (auto &proxy_lattice : proxy_lattice_arr)
+                {
+                    const auto [j_up, j_down] = qss::algorithms::spin_transport::perform(proxy_lattice);
+                    j_up_arr[idx] = j_up;
+                    j_down_arr[idx] = j_down;
+                    idx++;
+                }
             }
-            for (auto idx = 0u; auto &proxy_lattice : proxy_lattice_arr)
             {
-                for (auto &elem : N_up_values_arr)
+                auto idx = 0u; 
+                for (auto &proxy_lattice : proxy_lattice_arr)
                 {
-                    elem[idx] = 0.0;
-                }
-                for (auto &elem : N_down_values_arr)
-                {
-                    elem[idx] = 0.0;
-                }
-                for (auto film_id = 0u; auto &film : proxy_lattice.nanostructure)
-                {
-                    const auto volume = static_cast<double>(film.get_amount_of_nodes());
-                    for (auto &atom : film)
+                    for (auto &elem : N_up_values_arr)
                     {
-                        N_up_values_arr[film_id][idx] += atom.get_up() / volume;
-                        N_down_values_arr[film_id][idx] += atom.get_down() / volume;
+                        elem[idx] = 0.0;
                     }
-                    film_id++;
+                    for (auto &elem : N_down_values_arr)
+                    {
+                        elem[idx] = 0.0;
+                    }
+                    auto film_id = 0u; 
+                    for (auto &film : proxy_lattice.nanostructure)
+                    {
+                        const auto volume = static_cast<double>(film.get_amount_of_nodes());
+                        for (auto &atom : film)
+                        {
+                            N_up_values_arr[film_id][idx] += atom.get_up() / volume;
+                            N_down_values_arr[film_id][idx] += atom.get_down() / volume;
+                        }
+                        film_id++;
+                    }
+                    idx++;
                 }
-                idx++;
             }
             constexpr auto area = base_config::L * base_config::L;
             return {j_up_arr / area, j_down_arr / area};

@@ -59,7 +59,7 @@ struct base_config
     constexpr static std::uint16_t j_stat_amount = 3;
     constexpr static std::uint64_t mcs_init = 500;
     constexpr static std::uint64_t mcs_observation = 1'000;
-    constexpr static std::array N_size_vec{7u};
+    constexpr static std::array N_size_vec{3u};
     constexpr static std::array T_creation_vec{0.67};
     constexpr static std::array T_sample_vec{0.95};
     constexpr static std::array t_wait_vec{100u, 200u}; //, 400u, 1000u}; // должен быть отсортирован по увеличению

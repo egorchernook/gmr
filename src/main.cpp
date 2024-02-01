@@ -48,7 +48,7 @@ public:
     {
         using Return = std::invoke_result_t<std::decay_t<F>, std::decay_t<Args>...>;
 
-        auto task = std::make_shared<std::packaged_task<Return()>>(std::bind_front(std::forward<F>(f), std::forward<Args>(args)...));
+        auto task = std::make_shared<std::packaged_task<Return()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
         std::packaged_task<void(void)> wrapped_task{
             [task]() -> void
             {

@@ -17,13 +17,15 @@ class outputer_t
     const int id;
 
 public:
-    static std::string createName(std::string_view text, auto &&value_var) noexcept
+    template<typename Arg>
+    static std::string createName(std::string_view text, Arg &&value_var) noexcept
     {
         std::ostringstream stream{};
         stream << text << " " << value_var;
         return stream.str();
     }
-    static std::string createName(std::string_view text, const auto &value_var) noexcept
+    template<typename Arg>
+    static std::string createName(std::string_view text, const Arg &value_var) noexcept
     {
         std::ostringstream stream{};
         stream << text << " " << value_var;
@@ -35,7 +37,8 @@ public:
         stream << text << " " << to_string(value_var);
         return stream.str();
     }
-    static std::string createName(std::string_view text, const std::integral auto &value_var) noexcept
+    template<typename Arg, std::enable_if_t<std::is_integral_v<Arg>, bool> = true>
+    static std::string createName(std::string_view text, const Arg &value_var) noexcept
     {
         std::ostringstream stream{};
         stream << text << " " << std::to_string(value_var);
