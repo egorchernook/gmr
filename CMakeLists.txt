@@ -8,4 +8,4 @@ include_directories(qss/src)
 add_subdirectory(src)
 
 set(WARNINGS "-Wall -Wextra -Wshadow -Wconversion -Wpedantic")
-add_compile_options(WARNINGS "-O3")
+add_compile_options(${WARNINGS} "-O3")

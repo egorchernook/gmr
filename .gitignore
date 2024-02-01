@@ -53,3 +53,5 @@ info.txt
 .clang-format
 
 build
+
+iwyu.sh
