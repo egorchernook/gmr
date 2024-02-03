@@ -50,8 +50,6 @@ only_stat
 
 info.txt
 
-.clang-format
-
 build
 
 iwyu.sh

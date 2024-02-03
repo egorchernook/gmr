@@ -6,10 +6,8 @@
 #include <fstream>
 #include <vector>
 
-namespace stat
-{
-struct line_t final : private std::vector<double>
-{
+namespace stat {
+struct line_t final : private std::vector<double> {
     using data_t = std::vector<double>;
     using data_t::begin;
     using data_t::cbegin;
@@ -25,77 +23,71 @@ struct line_t final : private std::vector<double>
     using data_t::clear;
     using data_t::size;
 
-    line_t() : data_t{}
+    line_t()
+        : data_t{}
     {
     }
 
-    line_t &operator+=(const line_t &other) noexcept
+    line_t& operator+=(const line_t& other) noexcept
     {
-        if (this->empty())
-        {
+        if (this->empty()) {
             *this = other;
-        }
-        else
-        {
-            for (auto idx = 0u; idx < this->size(); ++idx)
-            {
-                if (idx < other.size())
-                {
+        } else {
+            for (auto idx = 0u; idx < this->size(); ++idx) {
+                if (idx < other.size()) {
                     this->at(idx) += other[idx];
                 }
             }
         }
         return *this;
     }
-    line_t &operator-=(const line_t &other) noexcept
+    line_t& operator-=(const line_t& other) noexcept
     {
-        if (this->empty())
-        {
+        if (this->empty()) {
             *this = other;
-        }
-        else
-        {
-            for (auto idx = 0u; idx < this->size(); ++idx)
-            {
-                if (idx < other.size())
-                {
+        } else {
+            for (auto idx = 0u; idx < this->size(); ++idx) {
+                if (idx < other.size()) {
                     this->at(idx) -= other[idx];
                 }
             }
         }
         return *this;
     }
-    line_t &operator/=(double value) noexcept
+    line_t& operator/=(double value) noexcept
     {
-        std::for_each(std::execution::par_unseq, this->begin(), this->end(),
-                      [&value](auto &elem) noexcept -> void { elem /= value; });
+        std::for_each(
+            std::execution::par_unseq,
+            this->begin(),
+            this->end(),
+            [&value](auto& elem) noexcept -> void { elem /= value; });
         return *this;
     }
 };
 
-inline line_t operator+(line_t lhs, const line_t &rhs) noexcept
+inline line_t operator+(line_t lhs, const line_t& rhs) noexcept
 {
     return lhs += rhs;
 }
-inline line_t operator-(line_t lhs, const line_t &rhs) noexcept
+inline line_t operator-(line_t lhs, const line_t& rhs) noexcept
 {
     return lhs -= rhs;
 }
 inline line_t sqr(line_t value)
 {
-    std::for_each(std::execution::par_unseq, value.begin(), value.end(),
-                  [](auto &elem) noexcept -> void { elem *= elem; });
+    std::for_each(
+        std::execution::par_unseq, value.begin(), value.end(), [](auto& elem) noexcept -> void {
+            elem *= elem;
+        });
     return value;
 }
-inline std::ostream &operator<<(std::ostream &out, const line_t &line) noexcept
+inline std::ostream& operator<<(std::ostream& out, const line_t& line) noexcept
 {
     out << "line : [ ";
-    for (auto iter = line.begin(); iter != line.end(); ++iter)
-    {
+    for (auto iter = line.begin(); iter != line.end(); ++iter) {
         const auto value = *iter;
         out << value;
-        if (iter + 1 != line.end())
-        {
+        if (iter + 1 != line.end()) {
             out << ", ";
         }
     }
