@@ -1,4 +1,5 @@
 #include "config.hpp"
+#include "cxxopts.hpp"
 #include "thread_function.hpp"
 #include "thread_pool.hpp"
 
@@ -14,47 +15,37 @@
 #include <thread>
 #include <vector>
 
-unsigned long parseArgs(int argc, char* argv[])
-{
-    unsigned long threads_amount{0};
-    if (argc == 1) {
-        threads_amount = 2;
-    } else {
-        threads_amount = std::stoul(argv[1]);
-    }
-    if (threads_amount > std::thread::hardware_concurrency()) {
-        threads_amount = std::thread::hardware_concurrency();
-    }
-    if (threads_amount <= 1) {
-        threads_amount = 2;
-    }
-    return threads_amount;
-}
-
 int main(int argc, char* argv[])
 {
-    constexpr auto results_folder = "results";
-    constexpr auto raw_data_folder = "raw";
+    cxxopts::Options options(
+        "MRCalc", "Magnetiresistance Calculation programm, can be used to calculate GMR or TMR.");
+
+    // clang-format off
+    options.add_options()
+        ("h,help", "Print help")
+        ("t,threads", "Initial amount of parallel threads", cxxopts::value<uint>()->default_value("2"));
+    // clang-format on
+
+    auto initOpts = options.parse(argc, argv);
 
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
     std::ostringstream oss;
-    oss << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S");
+    oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
     const auto time = "data_" + oss.str();
 
-    const auto threads_amount = parseArgs(argc, argv);
-    std::cout << "threads_amount = " << threads_amount << "\n";
+    const auto threads_amount = initOpts["threads"].as<uint>();
 
-    const auto init_dir = std::filesystem::current_path() / results_folder / time;
+    const auto init_dir = std::filesystem::current_path() / task::results_folder / time;
     {
-        std::ofstream info{"info.txt"};
-        info << init_dir.string() << "\t" << raw_data_folder << "\n";
+        std::ofstream info{std::filesystem::current_path() / task::results_folder / "info.txt"};
+        info << init_dir.string() << "\t" << task::raw_data_folder << "\n";
         info << task::create_config_info();
         info.flush();
         info.close();
         std::cout << "info.txt filled\n";
     }
-    const auto currentDir = (init_dir / raw_data_folder).string();
+    const auto currentDir = (init_dir / task::raw_data_folder).string();
     std::filesystem::create_directories(currentDir);
     std::filesystem::current_path(currentDir);
 
@@ -90,7 +81,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    stat::stater::makeStat(init_dir, raw_data_folder);
+    stat::stater::makeStat(init_dir, task::raw_data_folder);
     stat::stater::calcGMR(init_dir);
     stat::stater::calcP(init_dir);
 

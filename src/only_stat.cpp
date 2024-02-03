@@ -7,7 +7,7 @@
 
 int main()
 {
-    std::ifstream info{"info.txt"};
+    std::ifstream info{std::filesystem::current_path() / task::results_folder / "info.txt"};
     std::vector<std::string> vals;
     std::string line{};
     std::getline(info, line);

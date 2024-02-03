@@ -21,7 +21,10 @@
 #include <vector>
 
 namespace task {
+constexpr auto results_folder = "results";
+constexpr auto raw_data_folder = "raw";
 struct base_config {
+
     using spin_t = qss::heisenberg::spin;
     using magn_t = spin_t::magn_t;
     using lattice_t = qss::lattices::three_d::fcc<spin_t>;
