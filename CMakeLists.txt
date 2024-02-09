@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(qss/src)
 add_subdirectory(src)
+include_directories(src)
+add_subdirectory(test)
 
 set(WARNINGS "-Wall -Wextra -Wshadow -Wconversion -Wpedantic")
 add_compile_options(${WARNINGS} "-O3")
