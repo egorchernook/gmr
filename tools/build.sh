@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
-
-cmake -B build
+# -DCMAKE_CXX_COMPILER=g++-9
+# -DENABLE_BUILD_TESTS=ON
+cmake -B build -DENABLE_BUILD_TESTS=ON
 cmake --build build

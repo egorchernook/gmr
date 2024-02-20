@@ -16,7 +16,7 @@ inline typename task::base_config::config_t
 calculation(typename task::base_config::config_t config, std::string_view current_dir)
 {
     using task::base_config;
-    outputer_t outputer{config, current_dir};
+    outputer_t outputer{current_dir};
     outputer.EnterDirectory(task::createName(config));
 
     auto m_out = outputer.createFile("m_id=" + std::to_string(config.stat_id) + ".txt");

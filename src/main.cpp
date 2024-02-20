@@ -12,13 +12,11 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <thread>
-#include <vector>
 
 int main(int argc, char* argv[])
 {
     cxxopts::Options options(
-        "MRCalc", "Magnetiresistance Calculation programm, can be used to calculate GMR or TMR.");
+        "main", "Magnetiresistance Calculation programm, can be used to calculate GMR or TMR.");
 
     // clang-format off
     options.add_options()
@@ -27,6 +25,11 @@ int main(int argc, char* argv[])
     // clang-format on
 
     auto initOpts = options.parse(argc, argv);
+    if (initOpts.count("help"))
+    {
+        std::cout << options.help() << std::endl;
+        exit(0);
+    }
 
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);

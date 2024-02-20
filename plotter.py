@@ -594,7 +594,7 @@ for dir_N in os.listdir():
                             err = ((p1_err / p1 + p2_err / p2) +
                                    (p1_err / p1 + p2_err / p2)) * tmr
                             MR_from_Ps.append(tmr * 100)
-                            MR_from_Ps_err.append(err * 100)
+                            MR_from_Ps_err.append(abs(err) * 100)
 
                         plot_with_h_as_x_ax([h_list1, h_list3], [m_fst_list, m_snd_list],
                                             [m_fst_list_err, m_snd_list_err],
