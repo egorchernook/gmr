@@ -644,7 +644,6 @@ for dir_N in os.listdir():
                                             [r'$sum\_of\_m_{planes}^{1,2}$'],
                                             r'$h_{x}(J_{1})$', r'$sum\_of\_m_{planes}^{1,2}$',
                                             "P_from_m_planes_h", text)
-
                         os.chdir("..")
                 os.chdir("..")
         os.chdir("..")

@@ -167,7 +167,9 @@ struct stater {
                 std::getline(Ndown_in, head);
             }
             std::ofstream out{"P.txt"};
+            std::ofstream out_mod{"P_mod.txt"};
             out << "P_1\t\tP_2\t\n";
+            out_mod << "P_1\t\tP_2\t\n";
 
             while (!Nup_in.eof() && !Ndown_in.eof()) {
                 std::string up_line{};
@@ -193,11 +195,15 @@ struct stater {
                 const auto P2 = _P2 * task::base_config::A_fb;
                 const auto P2_err = _P2_err * task::base_config::A_fb;
 
-                out << P1 << "\t" << std::abs(P1_err) << "\t" << P2 << "\t" << std::abs(P2_err)
+                out << _P1 << "\t" << std::abs(_P1_err) << "\t" << _P2 << "\t" << std::abs(_P2_err)
+                    << "\n";
+                out_mod << P1 << "\t" << std::abs(P1_err) << "\t" << P2 << "\t" << std::abs(P2_err)
                     << "\n";
             }
             out.flush();
+            out_mod.flush();
             out.close();
+            out_mod.close();
         }
 
         std::cout << "Polarization calculations ends\n";
