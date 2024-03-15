@@ -77,12 +77,13 @@ struct base_config {
     constexpr static std::array magn_field_vec{
         magn_t{0.0, 0.0, 0.0},
         magn_t{0.5, 0.0, 0.0},
-        magn_t{0.6, 0.0, 0.0}, //magn_t{0.65, 0.0, 0.0},
-        magn_t{0.7, 0.0, 0.0}, //magn_t{0.75, 0.0, 0.0},
-        magn_t{0.8, 0.0, 0.0}, //magn_t{0.85, 0.0, 0.0},
-        magn_t{0.9, 0.0, 0.0}, //magn_t{0.95, 0.0, 0.0},
-        magn_t{1.0, 0.0, 0.0},
-        magn_t{2.0, 0.0, 0.0}};
+        // magn_t{0.6, 0.0, 0.0}, //magn_t{0.65, 0.0, 0.0},
+        // magn_t{0.7, 0.0, 0.0}, //magn_t{0.75, 0.0, 0.0},
+        // magn_t{0.8, 0.0, 0.0}, //magn_t{0.85, 0.0, 0.0},
+        // magn_t{0.9, 0.0, 0.0}, //magn_t{0.95, 0.0, 0.0},
+        // magn_t{1.0, 0.0, 0.0},
+        // magn_t{2.0, 0.0, 0.0}
+        };
 
     constexpr static double A_fb = -0.35;
 

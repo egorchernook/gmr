@@ -84,7 +84,7 @@ public:
         template<typename... Args>
         output_file_t& printLn(Args... args) noexcept
         {
-            ((out << args << "\t"), ...);
+            ((out << std::setw(10) << args << "\t"), ...);
             out << "\n";
             return *this;
         }
@@ -92,11 +92,11 @@ public:
         template<typename Head, typename... Args>
         output_file_t& print(Head fst, Args... args) noexcept
         {
-            out << fst;
+            out << std::setw(10) << fst;
             if (sizeof...(Args) == 0) {
                 out << "\t";
             } else {
-                ((out << "\t" << args), ...);
+                ((out << "\t" << std::setw(10) << args), ...);
             }
             return *this;
         }

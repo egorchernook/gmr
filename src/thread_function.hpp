@@ -21,6 +21,11 @@ calculation(typename task::base_config::config_t config, std::string_view curren
 
     auto m_out = outputer.createFile("m_id=" + std::to_string(config.stat_id) + ".txt");
     m_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z");
+    auto theta_out = outputer.createFile("cos_theta_id=" + std::to_string(config.stat_id) + ".txt");
+    theta_out.printLn("cos_theta");
+    auto thetaXZ_out
+        = outputer.createFile("cos_thetaXZ_id=" + std::to_string(config.stat_id) + ".txt");
+    thetaXZ_out.printLn("cos_thetaXZ");
 
     std::vector<typename outputer_t::output_file_t> j_out_vec{};
     std::vector<typename outputer_t::output_file_t> Nup_out_vec{};
@@ -54,15 +59,32 @@ calculation(typename task::base_config::config_t config, std::string_view curren
     base_config::spin_t::magn_t magn_snd_average{};
     constexpr auto mcs_amount = base_config::mcs_observation + base_config::t_wait_vec.back();
 
+    constexpr task::base_config::magn_t xz_normal{0, 1, 0};
     {
         auto m_dynamic_out
             = outputer.createFile("m_dynamic_id=" + std::to_string(config.stat_id) + ".txt");
         m_dynamic_out.printLn("m1", "m1x", "m1y", "m1z", "m2", "m2x", "m2y", "m2z");
+        auto theta_dynamic_out = outputer.createFile(
+            "cos_theta_dynamic_id=" + std::to_string(config.stat_id) + ".txt");
+        theta_dynamic_out.printLn("cos_theta");
+        auto thetaXZ_dynamic_out = outputer.createFile(
+            "cos_thetaXZ_dynamic_id=" + std::to_string(config.stat_id) + ".txt");
+        thetaXZ_dynamic_out.printLn("cos_thetaXZ");
+
         constexpr auto queue_size = 500u;
         std::queue<std::array<base_config::spin_t::magn_t, 2u>> queue{};
         for (auto mcs = 0u; mcs < queue_size; ++mcs) {
             const auto magns = sample.makeMonteCarloStep();
             m_dynamic_out.printLn(abs(magns[0]), magns[0], abs(magns[1]), magns[1]);
+
+            const auto cos_theta = cos_of_angle(magns[0], magns[1]);
+            theta_dynamic_out.printLn(cos_theta);
+
+            const auto cos_thetaXZ = cos_of_angle(
+                task::base_config::magn_t{magns[0].x, 0.0, magns[0].z},
+                task::base_config::magn_t{magns[1].x, 0.0, magns[1].z});
+            thetaXZ_dynamic_out.printLn(cos_thetaXZ);
+
             magn_fst_average += magns[0];
             magn_snd_average += magns[1];
             queue.push(std::move(magns));
@@ -168,6 +190,14 @@ calculation(typename task::base_config::config_t config, std::string_view curren
 
         const auto [magn1, magn2] = sample.makeMonteCarloStep();
         m_out.printLn(abs(magn1), magn1, abs(magn2), magn2);
+
+        const auto cos_theta = cos_of_angle(magn1, magn2);
+        theta_out.printLn(cos_theta);
+
+        const auto cos_thetaXZ = cos_of_angle(
+            task::base_config::magn_t{magn1.x, 0.0, magn1.z},
+            task::base_config::magn_t{magn2.x, 0.0, magn2.z});
+        thetaXZ_out.printLn(cos_thetaXZ);
     }
     return config;
 }

@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
     const auto time = "data_" + oss.str();
 
     const auto threads_amount = initOpts["threads"].as<uint>();
+    std::cout << "threads_amount: " << threads_amount << "\n";
 
     const auto init_dir = std::filesystem::current_path() / task::results_folder / time;
     {

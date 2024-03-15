@@ -32,6 +32,8 @@ struct stater {
             }
         }
         create_stat("m", configs, path_to_result_folder, raw_data_folder);
+        create_stat("cos_theta", configs, path_to_result_folder, raw_data_folder);
+        create_stat("cos_thetaXZ", configs, path_to_result_folder, raw_data_folder);
         create_stat("j", configs, path_to_result_folder, raw_data_folder);
         create_stat("Nup", configs, path_to_result_folder, raw_data_folder);
         create_stat("Ndown", configs, path_to_result_folder, raw_data_folder);

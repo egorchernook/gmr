@@ -252,6 +252,9 @@ def go_and_draw(dir, text: str):
                 j_line = plot_func_t(abs_path, text, 'j', 'J')
                 j_list.append(j_line)
 
+                plot_func_t(abs_path, text, 'cos_theta', r'\theta', 1)
+                plot_func_t(abs_path, text, 'cos_thetaXZ', r'\theta_{XZ}', 1)
+
                 Nup_line = plot_func_t(
                     abs_path, text, 'Nup', r'$N_{\uparrow}$')
                 Nup_list.append(Nup_line)
