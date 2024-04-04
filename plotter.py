@@ -252,8 +252,8 @@ def go_and_draw(dir, text: str):
                 j_line = plot_func_t(abs_path, text, 'j', 'J')
                 j_list.append(j_line)
 
-                plot_func_t(abs_path, text, 'cos_theta', r'\theta', 1)
-                plot_func_t(abs_path, text, 'cos_thetaXZ', r'\theta_{XZ}', 1)
+                # plot_func_t(abs_path, text, 'cos_theta', r'\theta', 1)
+                # plot_func_t(abs_path, text, 'cos_thetaXZ', r'\theta_{XZ}', 1)
 
                 Nup_line = plot_func_t(
                     abs_path, text, 'Nup', r'$N_{\uparrow}$')
@@ -626,11 +626,26 @@ for dir_N in os.listdir():
                                             "N_h", text)
 
                         plot_with_h_as_x_ax([h_list17, h_list19],
-                                            [P_fst_list, P_snd_list],
+                                            [[i / -0.35 for i in P_fst_list]  , [i / -0.35 for i in P_snd_list]],
                                             [P_fst_list_err, P_snd_list_err],
                                             [r'$P_{s}^{1}$', r'$P_{s}^{2}$'],
                                             r'$h_{x}(J_{1})$', r'$P_{s}$',
                                             "Ps_h", text)
+
+                        plot_with_h_as_x_ax([h_list17, h_list19],
+                                            [P_fst_list, P_snd_list],
+                                            [P_fst_list_err, P_snd_list_err],
+                                            [r'$P_{s}^{1}$', r'$P_{s}^{2}$'],
+                                            r'$h_{x}(J_{1})$', r'$P_{s}$',
+                                            "Ps_h_Afb", text + "\n" + r'$A_{fb} = -0.35$')
+
+                        plot_with_h_as_x_ax([h_list17, h_list19],
+                                            [[i * 0.8 / 0.35 for i in P_fst_list], [i * 0.8 / 0.35 for i in P_snd_list]],
+                                            [P_fst_list_err, P_snd_list_err],
+                                            [r'$P_{s}^{1}$', r'$P_{s}^{2}$'],
+                                            r'$h_{x}(J_{1})$', r'$P_{s}$',
+                                            "Ps_h_Astarfb", text + "\n" + r'$A_{fb} = -0.8$')
+                        
 
                         plot_with_h_as_x_ax([h_list21], [MR_from_Ps], [MR_from_Ps_err],
                                             [r'$\delta_{pol}$'], r'$h_{x}(J_{1})$',
