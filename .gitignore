@@ -50,6 +50,6 @@ only_stat
 
 info.txt
 
-build
+build*
 
 iwyu.sh

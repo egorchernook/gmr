@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdio>
 #include <exception>
-#include <execution>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -378,7 +377,7 @@ private:
 
         std::string line{};
         std::for_each(
-            std::execution::par_unseq, begin, end, [&line](auto& elem) mutable noexcept -> void {
+            begin, end, [&line](auto& elem) mutable noexcept -> void {
                 std::getline(elem, line);
             });
         ret_val += line;

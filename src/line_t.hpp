@@ -2,7 +2,6 @@
 #define LINE_T_HPP_INCLUDED
 
 #include <algorithm>
-#include <execution>
 #include <fstream>
 #include <vector>
 
@@ -57,7 +56,6 @@ struct line_t final : private std::vector<double> {
     line_t& operator/=(double value) noexcept
     {
         std::for_each(
-            std::execution::par_unseq,
             this->begin(),
             this->end(),
             [&value](auto& elem) noexcept -> void { elem /= value; });
@@ -76,7 +74,7 @@ inline line_t operator-(line_t lhs, const line_t& rhs) noexcept
 inline line_t sqr(line_t value)
 {
     std::for_each(
-        std::execution::par_unseq, value.begin(), value.end(), [](auto& elem) noexcept -> void {
+        value.begin(), value.end(), [](auto& elem) noexcept -> void {
             elem *= elem;
         });
     return value;

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(ENABLE_BUILD_TESTS "Build tests" OFF)
+set(CUSTOM_MARCH native)
 
 set(WARNINGS -Wall -Wextra -Wshadow -Wconversion -Wpedantic)
 

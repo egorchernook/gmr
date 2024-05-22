@@ -66,10 +66,10 @@ struct base_config {
         return deltas[--N];
     }
     constexpr static std::uint16_t m_stat_amount = 10; // количество статистических прогонок
-    constexpr static std::uint16_t j_stat_amount = 10;
+    constexpr static std::uint16_t j_stat_amount = 50;
     constexpr static std::uint64_t mcs_init = 500;
-    constexpr static std::uint64_t mcs_observation = 1'000;
-    constexpr static std::array N_size_vec{3u}; //, 5u, 7u};
+    constexpr static std::uint64_t mcs_observation = 5'000;
+    constexpr static std::array N_size_vec{3u, 5u, 7u};
     constexpr static std::array T_creation_vec{0.67};
     constexpr static std::array T_sample_vec{0.95};
     constexpr static std::array t_wait_vec{
