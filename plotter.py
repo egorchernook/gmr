@@ -374,14 +374,15 @@ for dir_N in os.listdir():
             if dir_T0.find("T_creation = ") != -1:
                 os.chdir(dir_T0)
                 T0_str = r"$T_{creation}$ = " + \
-                    os.path.split(dir_T0)[1].split(' ')[2].strip() + "\n"
+                    str(int(round(float(os.path.split(dir_T0)[1].split(' ')[2].strip())*318.8, -2))) +\
+                        "K\n"
                 for dir_Ts in os.listdir():
                     print(f"Dir: {dir_Ts}")
                     if dir_Ts.find("T_sample = ") != -1:
                         os.chdir(dir_Ts)
                         Ts_str = r"$T_{sample}$ = " + \
-                            os.path.split(dir_Ts)[1].split(
-                                ' ')[2].strip() + "\n"
+                            str(int(round(float(os.path.split(dir_Ts)[1].split(
+                                ' ')[2].strip())*318.8, -2))) + "K\n"
                         cur = os.curdir
 
                         text = N_str + T0_str + Ts_str
@@ -580,23 +581,29 @@ for dir_N in os.listdir():
                         for idx in range(1, len(mr_list)):
                             mr = mr_list[idx]
                             value = np.sqrt(mr / (200.0 + mr))  # mr in %
-                            pol_list.append(value)
+                            pol_list.append(abs(value)*100)
                             err = (
                                 mr_err_list[idx] / mr + mr_err_list[idx] / (200.0 + mr)) * np.sqrt(value) / 2.0
                             pol_err_list.append(err)
 
                         MR_from_Ps: List[np.double] = list()
                         MR_from_Ps_err: List[np.double] = list()
+                        
+                        MR_from_PsAstarfb: List[np.double] = list()
                         for idx in range(len(P_fst_list)):
                             p1 = P_fst_list[idx]
+                            p1_afb = p1 * 0.8 / 0.35
                             p2 = P_snd_list[idx]
+                            p2_afb = p2 * 0.8 / 0.35
                             p1_err = P_fst_list_err[idx]
                             p2_err = P_snd_list_err[idx]
 
                             tmr = 2 * p1 * p2/(1 - p1 * p2)
+                            tmr_afb = 2 * p1_afb * p2_afb/(1 - p1_afb * p2_afb)
                             err = ((p1_err / p1 + p2_err / p2) +
                                    (p1_err / p1 + p2_err / p2)) * tmr
                             MR_from_Ps.append(tmr * 100)
+                            MR_from_PsAstarfb.append(tmr_afb * 100)
                             MR_from_Ps_err.append(abs(err) * 100)
 
                         plot_with_h_as_x_ax([h_list1, h_list3], [m_fst_list, m_snd_list],
@@ -612,7 +619,7 @@ for dir_N in os.listdir():
 
                         plot_with_h_as_x_ax([h_list8], [pol_list], [np.zeros(len(pol_list))], #[pol_err_list], 
                                             [r'$P_s$'],
-                                            r'$h_{x}(J_{1})$', r'$P_s$',
+                                            r'$h_{x}(J_{1})$', r'$P_s, \%$',
                                             "Ps_from_MR_h", text)
 
                         plot_with_h_as_x_ax([h_list9, h_list11, h_list13, h_list15],
@@ -626,10 +633,10 @@ for dir_N in os.listdir():
                                             "N_h", text)
 
                         plot_with_h_as_x_ax([h_list17, h_list19],
-                                            [[i / -0.35 for i in P_fst_list]  , [i / -0.35 for i in P_snd_list]],
+                                            [[float(abs(i / -0.35))*100 for i in P_fst_list], [float(abs(i / -0.35))*100 for i in P_snd_list]],
                                             [P_fst_list_err, P_snd_list_err],
                                             [r'$P_{s}^{1}$', r'$P_{s}^{2}$'],
-                                            r'$h_{x}(J_{1})$', r'$P_{s}$',
+                                            r'$h_{x}(J_{1})$', r'$P_{s}, \%$',
                                             "Ps_h", text)
 
                         plot_with_h_as_x_ax([h_list17, h_list19],
@@ -640,12 +647,18 @@ for dir_N in os.listdir():
                                             "Ps_h_Afb", text + "\n" + r'$A_{fb} = -0.35$')
 
                         plot_with_h_as_x_ax([h_list17, h_list19],
-                                            [[i * 0.8 / 0.35 for i in P_fst_list], [i * 0.8 / 0.35 for i in P_snd_list]],
+                                            [[float(abs(i * 0.8 / 0.35))*100 for i in P_fst_list], [float(abs(i * 0.8 / 0.35))*100 for i in P_snd_list]],
                                             [P_fst_list_err, P_snd_list_err],
                                             [r'$P_{s}^{1}$', r'$P_{s}^{2}$'],
-                                            r'$h_{x}(J_{1})$', r'$P_{s}$',
+                                            r'$h_{x}(J_{1})$', r'$P_{s}, \%$',
                                             "Ps_h_Astarfb", text + "\n" + r'$A_{fb} = -0.8$')
                         
+                        plot_with_h_as_x_ax([h_list21], 
+                                            [MR_from_PsAstarfb], 
+                                            [MR_from_Ps_err],
+                                            [r'$\delta_{pol}$'], r'$h_{x}(J_{1})$',
+                                            r'$\delta_{pol} ,\%$',
+                                            "MR_from_PsAstarfb_h", text + "\n" + r'$A_{fb} = -0.8$')
 
                         plot_with_h_as_x_ax([h_list21], [MR_from_Ps], [MR_from_Ps_err],
                                             [r'$\delta_{pol}$'], r'$h_{x}(J_{1})$',
@@ -658,10 +671,10 @@ for dir_N in os.listdir():
                                             r'$h_{x}(J_{1})$', r'$m$',
                                             "m_h", text)
 
-                        plot_with_h_as_x_ax([h_list22], [m_plane_sum_list], [m_plane_sum_list_err],
-                                            [r'$sum\_of\_m_{planes}^{1,2}$'],
-                                            r'$h_{x}(J_{1})$', r'$sum\_of\_m_{planes}^{1,2}$',
-                                            "P_from_m_planes_h", text)
+                        # plot_with_h_as_x_ax([h_list22], [m_plane_sum_list], [m_plane_sum_list_err],
+                        #                     [r'$sum\_of\_m_{planes}^{1,2}$'],
+                        #                     r'$h_{x}(J_{1})$', r'$sum\_of\_m_{planes}^{1,2}$',
+                        #                     "P_from_m_planes_h", text)
                         os.chdir("..")
                 os.chdir("..")
         os.chdir("..")

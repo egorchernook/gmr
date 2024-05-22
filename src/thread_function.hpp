@@ -6,6 +6,7 @@
 #include "stat.hpp"
 #include "system.hpp"
 
+#include <chrono>
 #include <cmath>
 #include <queue>
 #include <string>
@@ -50,8 +51,14 @@ calculation(typename task::base_config::config_t config, std::string_view curren
         Ndown_out_vec[idx].printLn("N_down_1", "N_down_2");
     }
 
+    const auto start_timepoint = std::chrono::steady_clock::now();
+
     auto sample = task::createSample(config);
-    task::prepare(sample);
+    const auto init_mcs_amount = task::prepare(sample);
+    auto info_out
+        = outputer.createFile("info_id=" + std::to_string(config.stat_id) + ".txt");
+    info_out.printLn(
+        "Initialization stage duration : ", std::to_string(init_mcs_amount), "MCS/s");
 
     std::valarray<double> j_up_arr(task::base_config::j_stat_amount);
     std::valarray<double> j_down_arr(task::base_config::j_stat_amount);
@@ -59,7 +66,6 @@ calculation(typename task::base_config::config_t config, std::string_view curren
     base_config::spin_t::magn_t magn_snd_average{};
     constexpr auto mcs_amount = base_config::mcs_observation + base_config::t_wait_vec.back();
 
-    constexpr task::base_config::magn_t xz_normal{0, 1, 0};
     {
         auto m_dynamic_out
             = outputer.createFile("m_dynamic_id=" + std::to_string(config.stat_id) + ".txt");
@@ -96,7 +102,7 @@ calculation(typename task::base_config::config_t config, std::string_view curren
         constexpr auto eps = 1e-2; // 20.0 / (base_config::L * base_config::L * config.N);
 
         auto mcs_on_dynamic_stage = queue_size;
-        for (auto _ = 0u; _ < 10'000; ++_) {
+        for (auto mcs = 0u; mcs < 10'000; ++mcs) {
             const auto [magn1, magn2] = sample.makeMonteCarloStep();
             m_dynamic_out.printLn(abs(magn1), magn1, abs(magn2), magn2);
 
@@ -110,20 +116,20 @@ calculation(typename task::base_config::config_t config, std::string_view curren
             queue.pop();
             queue.push({magn1, magn2});
 
+            mcs_on_dynamic_stage ++;
             if (is_almost_equals(magn_fst_average, magn1, eps)
                 && is_almost_equals(magn_snd_average, magn2, eps)) {
-                mcs_on_dynamic_stage += _;
                 break;
             }
         };
 
-        {
-            auto info_out
-                = outputer.createFile("info_id=" + std::to_string(config.stat_id) + ".txt");
-            info_out.printLn(
-                "Dynamic stage duration : ", std::to_string(mcs_on_dynamic_stage), "MCS/s");
-        }
+        info_out.printLn(
+            "Dynamic stage duration : ", std::to_string(mcs_on_dynamic_stage), "MCS/s");
     }
+
+    const auto first_timepoint = std::chrono::steady_clock::now();
+    const auto initialization_time = std::chrono::duration_cast<std::chrono::hours>(first_timepoint - start_timepoint);
+
     for (auto mcs = 0u; mcs < mcs_amount; ++mcs) {
         if (mcs == base_config::t_wait_vec.front()) {
             const auto [up, down] = sample.startObservation();
@@ -199,6 +205,15 @@ calculation(typename task::base_config::config_t config, std::string_view curren
             task::base_config::magn_t{magn2.x, 0.0, magn2.z});
         thetaXZ_out.printLn(cos_thetaXZ);
     }
+
+    const auto end_timepoint = std::chrono::steady_clock::now();
+    const auto observation_time = std::chrono::duration_cast<std::chrono::hours>(first_timepoint - start_timepoint);
+    const auto full_calculation_time = std::chrono::duration_cast<std::chrono::hours>(end_timepoint - start_timepoint);
+
+    auto timepoints_out = outputer.createFile("time_id=" + std::to_string(config.stat_id) + ".txt");
+    timepoints_out.printLn("initialization, h", "observation, h", "full, h");
+    timepoints_out.printLn(initialization_time.count(), observation_time.count(), full_calculation_time.count());
+
     return config;
 }
 

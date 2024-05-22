@@ -77,8 +77,8 @@ struct stater {
             for (auto tw_counter = 0u; tw_counter < task::base_config::t_wait_vec.size();
                  ++tw_counter) {
                 outers[tw_counter].open(
-                    "GMR_tw=" + std::to_string(task::base_config::t_wait_vec[tw_counter]) + ".txt");
-                outers[tw_counter] << "GMR_h_lower_hc\t\tGMR_h_upper_hc\t" << std::endl;
+                    "MR_tw=" + std::to_string(task::base_config::t_wait_vec[tw_counter]) + ".txt");
+                outers[tw_counter] << "MR_h_lower_hc\t\tMR_h_upper_hc\t" << std::endl;
             }
             auto t_minus_tw_counter = 0u;
             while (!j_file.eof() && !j_file_0.eof()) {
@@ -130,9 +130,10 @@ struct stater {
                     const auto mcs = task::base_config::t_wait_vec[tw_counter]
                         - task::base_config::t_wait_vec[0];
                     if (t_minus_tw_counter >= mcs) {
-                        outers[tw_counter]
-                            << GMR_h_lower_hc * 100 << '\t' << GMR_h_lower_hc_err * 100 << '\t'
-                            << GMR_h_upper_hc * 100 << '\t' << GMR_h_upper_hc_err * 100 << '\n';
+                        outers[tw_counter] << std::setw(10) << GMR_h_lower_hc * 100 << '\t'
+                                           << std::setw(10) << GMR_h_lower_hc_err * 100 << '\t'
+                                           << std::setw(10) << GMR_h_upper_hc * 100 << '\t'
+                                           << std::setw(10) << GMR_h_upper_hc_err * 100 << '\n';
                     }
                 }
                 t_minus_tw_counter++;
@@ -142,7 +143,7 @@ struct stater {
                 outer.close();
             }
         }
-        std::cout << "GMR calculations ends"
+        std::cout << "MR calculations ends"
                   << "\n";
     }
 
@@ -197,10 +198,10 @@ struct stater {
                 const auto P2 = _P2 * task::base_config::A_fb;
                 const auto P2_err = _P2_err * task::base_config::A_fb;
 
-                out << _P1 << "\t" << std::abs(_P1_err) << "\t" << _P2 << "\t" << std::abs(_P2_err)
-                    << "\n";
-                out_mod << P1 << "\t" << std::abs(P1_err) << "\t" << P2 << "\t" << std::abs(P2_err)
-                    << "\n";
+                out << std::setw(10) << _P1 << "\t" << std::setw(10) << std::abs(_P1_err) << "\t"
+                    << std::setw(10) << _P2 << "\t" << std::setw(10) << std::abs(_P2_err) << "\n";
+                out_mod << std::setw(10) << P1 << "\t" << std::setw(10) << std::abs(P1_err) << "\t"
+                        << std::setw(10) << P2 << "\t" << std::setw(10) << std::abs(P2_err) << "\n";
             }
             out.flush();
             out_mod.flush();
@@ -237,6 +238,7 @@ private:
     {
         return {base_name + "_id=" + std::to_string(id) + ".txt"};
     }
+    // template <std::uint16_t stat_amount = task::base_config::m_stat_amount * task::base_config::j_stat_amount>
     static void create_stat(
         std::string&& name,
         const std::vector<task::base_config::config_t>& configs,
@@ -271,14 +273,19 @@ private:
                 return res;
             };
 
-            fs::current_path(path_to_result_folder / stat_folder / folder_name);
+            try{
+                fs::current_path(path_to_result_folder / stat_folder / folder_name);
+            } catch(std::exception& e) {
+                std::cout << path_to_result_folder / stat_folder / folder_name << std::endl;
+                throw;
+            }
             std::cout << "\t" << fs::current_path().string() << "/" << name
                       << " file stat begins\n";
             std::ofstream out{name + ".txt"};
             {
                 std::istringstream init_head_stream{init_head};
                 for (std::string elem; std::getline(init_head_stream, elem, '\t');) {
-                    out << elem << "\t\t";
+                    out << std::setw(10) << elem << "\t\t";
                 }
                 out << "\n";
             }
@@ -305,7 +312,8 @@ private:
                 err /= amount;
 
                 for (auto idx = 0u; idx < average.size(); ++idx) {
-                    out << average[idx] << '\t' << err[idx] << '\t';
+                    out << std::setw(10) << average[idx] << '\t' << std::setw(10) << err[idx]
+                        << '\t';
                 }
                 out << '\n';
             }

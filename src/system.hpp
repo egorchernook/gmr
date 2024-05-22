@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <functional>
+#include <queue>
 #include <type_traits>
 #include <utility>
 #include <valarray>
@@ -245,16 +246,58 @@ inline sample_t createSample(const base_config::config_t& config) noexcept
 }
 
 // готовит образец до температуры T_creation ровно base_config::mcs_init шагов
-inline void prepare(sample_t& sam)
+inline std::uint64_t prepare(sample_t& sam)
 {
     const auto config = sam.config;
     sam.lattice.T = config.T_creation;
     const auto N = config.N;
     const auto Delta = base_config::getDelta(N);
     auto hamilt = base_config::createHamilton_f(config.field, Delta);
-    for (auto _ = 0u; _ < base_config::mcs_init; ++_) {
+
+    base_config::spin_t::magn_t magn_fst_average{};
+    base_config::spin_t::magn_t magn_snd_average{};
+
+    constexpr auto queue_size = base_config::mcs_init / 2;
+    std::queue<std::array<base_config::spin_t::magn_t, 2u>> queue{};
+    for (auto _ = 0u; _ < base_config::mcs_init / 2; ++_) {
         sam.lattice.evolve(hamilt);
     }
+    for (auto _ = 0u; _ < base_config::mcs_init / 2; ++_) {
+        sam.lattice.evolve(hamilt);
+        const auto magns = sam.lattice.magns;
+        magn_fst_average += magns[0];
+        magn_snd_average += magns[1];
+        queue.push({magns[0], magns[1]});
+    }
+    const auto size_as_double = static_cast<double>(queue_size);
+    magn_fst_average /= size_as_double;
+    magn_snd_average /= size_as_double;
+
+    constexpr auto eps = 1e-2; // 20.0 / (base_config::L * base_config::L * config.N);
+    auto mcs_to_init = base_config::mcs_init;
+    for (auto mcs = 0u; mcs < 10'000; ++mcs) {
+        sam.lattice.evolve(hamilt);
+        const auto magn1 = sam.lattice.magns[0];
+        const auto magn2 = sam.lattice.magns[1];
+
+        const auto elem_to_pop = queue.front();
+        magn_fst_average -= elem_to_pop[0] / size_as_double;
+        magn_snd_average -= elem_to_pop[1] / size_as_double;
+
+        magn_fst_average += magn1 / size_as_double;
+        magn_snd_average += magn2 / size_as_double;
+
+        queue.pop();
+        queue.push({magn1, magn2});
+
+        mcs_to_init += mcs;
+        if (is_almost_equals(magn_fst_average, magn1, eps)
+            && is_almost_equals(magn_snd_average, magn2, eps)) {
+            break;
+        }
+    };
+
+    return mcs_to_init;
 }
 } // namespace task
 
