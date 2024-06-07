@@ -5,7 +5,7 @@ from numpy.typing import ArrayLike
 import matplotlib.pyplot as plt
 import os
 import numpy as np
-
+import re
 
 def parse_path(path: str) -> List[str]:
     return path.split("/")[1:]
@@ -39,7 +39,7 @@ class Config:
     def text(self) -> str:
         Tc = f"{int(round(self.T_creation*318.8, -2))}K"
         Ts = f"{int(round(self.T_sample*318.8, -2))}K"
-        return f'N = {self.N}\nT_creation = {Tc}\nT_sample = {Ts}'
+        return f'N = {self.N}\n' + r'$T_0$' + f' = {Tc}\n' + r'$T_s$' + f' = {Ts}'
 
     def path(self) -> str:
         return f'N = {self.N}/T_creation = {self.T_creation}/T_sample = {self.T_sample}'
@@ -97,15 +97,22 @@ def process_file(*, path: str, file: str):
         np.put(mean, idx * mean.shape[1] + 1, err[idx] + mean_err[idx])
 
     fig, ax = plt.subplots()
-    ax.tick_params(direction='in', which='both')
+    ax.tick_params(direction='in', which='both', right=True, top=True)
     ax.minorticks_on()
     ax.set_xlabel(r'$t$(mcs/s)')
     ax.set_ylabel(name)
     for idx in range(0, data.shape[0], 2):
         y = data[idx][50:]
         yerr = data[idx + 1][50:]
+        label = heads[idx]
+        if re.search(r"^m[12]$", label) != None:
+            label = rf"$m^{label[1]}$"
+        elif re.search(r"^m[12][xyz]$", label) != None:
+            label = rf"$m^{label[1]}_{label[2]}$"
+
         ax.errorbar(x=x[50:], y=y, yerr=yerr,
-            label=heads[idx], errorevery=len(x) // 5, elinewidth=0.2, capsize=3, capthick=0.5)
+            label=label, errorevery=len(x) // 5, 
+            elinewidth=0.2, capsize=3, capthick=0.5)
 
     ax.legend()
     x_min, x_max = ax.xaxis.get_data_interval()
@@ -113,7 +120,11 @@ def process_file(*, path: str, file: str):
     x_tick_size = abs(x_max - x_min) / 10
     y_tick_size = abs(y_max - y_min) / 10
 
-    plt.text(x=x_max - 3*x_tick_size, y=y_min + 4*y_tick_size, s=config.text())
+    x_text = x_max - 3*x_tick_size
+    y_text = y_min + 4*y_tick_size
+    if file.count("m") != 0 and file.count("_") == 0:
+        x_text = x_min + x_tick_size
+    plt.text(x=x_text, y=y_text, s=config.text())
     plt.tight_layout()
     plt.savefig(full_filename.replace(".txt", ".pdf"), dpi=600)
     plt.close()
@@ -135,10 +146,10 @@ def prettify_labels(labels: List[str]) -> List[str]:
             continue
 
         if label == "MR_h_lower_hc":
-            ret.append(r"$\delta_h^{lhc}$")
+            ret.append(r"$\delta_{lH_c}$")
             continue
         if label == "MR_h_upper_hc":
-            ret.append(r"$\delta_h^{uhc}$")
+            ret.append(r"$\delta_{uH_c}$")
             continue
 
         components = label.split("_")
@@ -208,13 +219,14 @@ if __name__ == "__main__":
                     if name == "P" or name == "P_mod":
                         y_list[idx][field_counter] = np.absolute(average[idx][0]) * 100
                         yerr_list[idx][field_counter] = np.absolute(average[idx][1]) * 100
-                    else:
-                        y_list[idx][field_counter] = average[idx][0]
-                        yerr_list[idx][field_counter] = average[idx][1]
+                        continue
+
+                    y_list[idx][field_counter] = average[idx][0]
+                    yerr_list[idx][field_counter] = average[idx][1]
                 field_counter += 1
 
             fig, ax = plt.subplots()
-            ax.tick_params(direction='in', which='both')
+            ax.tick_params(direction='in', which='both', right=True, top=True)
             ax.minorticks_on()
             ax.set_xlabel(r'$h_x$($J_1 \cdot \mu_{B}$)')
             
@@ -234,15 +246,18 @@ if __name__ == "__main__":
             file_data[0] = x
             for idx in range(y_list.shape[0]):
                 if name == "m":
-                    if name_to_label[name][idx].count("x"):
-                        plot(ax, x=x, y=y_list[idx], yerr=yerr_list[idx], 
-                            fmt=markers[idx]+'-', label=name_to_label[name][idx])
+                    if name_to_label[name][idx].count("x") > 0:
+                        if name_to_label[name][idx] == "m1x":
+                            plot(ax, x=x, y=y_list[idx], yerr=yerr_list[idx], 
+                                fmt=markers[idx]+'-', label=r"$m^1_x$")
                         if name_to_label[name][idx] == "m2x":
+                            plot(ax, x=x, y=y_list[idx], yerr=yerr_list[idx], 
+                                fmt=markers[idx]+'-', label=r"$m^2_x$")
                             for jdx in range(len(y_list[idx])):
                                 if y_list[idx][jdx] > 0.0 and critical_field == 0.0:
                                     critical_field = x[jdx]
                                     break
-                if config.N == 7 and name == "P_mod":
+                elif config.N == 7 and name == "P_mod":
                     plot(ax, x=x, y=y_list[idx], yerr=np.zeros(shape=(yerr_list[idx].shape)),
                             fmt=markers[idx]+'-', label=name_to_label[name][idx])
                 else:
@@ -281,7 +296,7 @@ if __name__ == "__main__":
         x = list()
         MR_R = list()
         MR_R_err = list()
-        for (field, average) in data["MR_tw=0"].items():
+        for (field, average) in data["GMR_tw=100"].items():
             x.append(field.x)
             if field.x < critical_field:
                 MR_R.append(average[0][0])
@@ -292,7 +307,7 @@ if __name__ == "__main__":
 
         try:
             fig, ax = plt.subplots()
-            ax.tick_params(direction='in', which='both')
+            ax.tick_params(direction='in', which='both', right=True, top=True)
             ax.minorticks_on()
             ax.set_xlabel(r'$h_x$($J_1$)')
             ax.set_ylabel(r'$\delta_{ТМС}, \%$')
@@ -326,7 +341,7 @@ if __name__ == "__main__":
         
         try:
             fig, ax = plt.subplots()
-            ax.tick_params(direction='in', which='both')
+            ax.tick_params(direction='in', which='both', right=True, top=True)
             ax.minorticks_on()
             ax.set_xlabel(r'$h_x$($J_1$)')
             ax.set_ylabel(r'$P_{s}, \%$')
@@ -390,7 +405,7 @@ if __name__ == "__main__":
 
         try:
             fig, ax = plt.subplots()
-            ax.tick_params(direction='in', which='both')
+            ax.tick_params(direction='in', which='both', right=True, top=True)
             ax.minorticks_on()
             ax.set_xlabel(r'$h_x$($J_1$)')
             ax.set_ylabel(r'$\delta_{ТМС}, \%$')
