@@ -152,6 +152,10 @@ def prettify_labels(labels: List[str]) -> List[str]:
             ret.append(r"$\delta_{uH_c}$")
             continue
 
+        if label == "cos_theta":
+            ret.append(r"$cos(\theta)$")
+            continue
+
         components = label.split("_")
         if len(components) == 2:
             ret.append(fr"${components[0]}_{components[1]}$")
@@ -233,11 +237,15 @@ if __name__ == "__main__":
             if name == "P":
                 ax.set_ylabel(r"$P_s$, %")
             elif name == "P_mod":
-                ax.set_ylabel(r"$P^R_s$, %")
+                ax.set_ylabel(r"$P_s^*$, %")
             elif name == "Nup":
-                ax.set_ylabel(r"$N_\uparrow$, %")
+                ax.set_ylabel(r"$N_\uparrow$")
             elif name == "Ndown":
-                ax.set_ylabel(r"$N_\downarrow$, %")
+                ax.set_ylabel(r"$N_\downarrow$")
+            elif name == "MR_tw=0_h":
+                ax.set_ylabel(r"$\delta, \%$")
+            elif name == "cos_theta":
+                ax.set_ylabel(r"$cos(\theta)$")
             else:
                 ax.set_ylabel(name)
 
@@ -257,9 +265,9 @@ if __name__ == "__main__":
                                 if y_list[idx][jdx] > 0.0 and critical_field == 0.0:
                                     critical_field = x[jdx]
                                     break
-                elif config.N == 7 and name == "P_mod":
-                    plot(ax, x=x, y=y_list[idx], yerr=np.zeros(shape=(yerr_list[idx].shape)),
-                            fmt=markers[idx]+'-', label=name_to_label[name][idx])
+                # elif config.N == 7 and name == "P_mod":
+                #     plot(ax, x=x, y=y_list[idx], yerr=np.zeros(shape=(yerr_list[idx].shape)),
+                #             fmt=markers[idx]+'-', label=name_to_label[name][idx])
                 else:
                     plot(ax, x=x, y=y_list[idx], yerr=yerr_list[idx], 
                          fmt=markers[idx]+'-', label=name_to_label[name][idx])
@@ -296,11 +304,23 @@ if __name__ == "__main__":
         x = list()
         MR_R = list()
         MR_R_err = list()
-        for (field, average) in data["GMR_tw=100"].items():
+        
+        x_lhc = list()
+        MR_R_lhc = list()
+        MR_R_lhc_err = list()
+        MR_R_uhc = list()
+        MR_R_uhc_err = list()
+        for (field, average) in data["MR_tw=0"].items():
             x.append(field.x)
             if field.x < critical_field:
                 MR_R.append(average[0][0])
                 MR_R_err.append(average[0][1])
+
+                x_lhc.append(field.x)
+                MR_R_lhc.append(average[0][0])
+                MR_R_lhc_err.append(average[0][1])
+                MR_R_uhc.append(average[1][0])
+                MR_R_uhc_err.append(average[1][1])
             else:
                 MR_R.append(average[1][0])
                 MR_R_err.append(average[1][1])
@@ -309,13 +329,36 @@ if __name__ == "__main__":
             fig, ax = plt.subplots()
             ax.tick_params(direction='in', which='both', right=True, top=True)
             ax.minorticks_on()
-            ax.set_xlabel(r'$h_x$($J_1$)')
-            ax.set_ylabel(r'$\delta_{ТМС}, \%$')
+            ax.set_xlabel(r'$h_x$($J_1 \cdot \mu_B$)')
+            ax.set_ylabel(r'$\delta, \%$')
+
+            plot(ax, x=x_lhc, y=MR_R_lhc, yerr=MR_R_lhc_err, fmt=markers[0]+'-', label=r'$\delta_{lH_c}$')
+            plot(ax, x=x_lhc, y=MR_R_uhc, yerr=MR_R_uhc_err, fmt=markers[1]+'-', label=r'$\delta_{uH_c}$')
+
+            ax.legend()
+            x_min, x_max = ax.xaxis.get_data_interval()
+            y_min, y_max = ax.yaxis.get_data_interval()
+            x_tick_size = abs(x_max - x_min) / 10
+            y_tick_size = abs(y_max - y_min) / 10
+
+            plt.text(x=x_max - 3*x_tick_size, y=y_min + 4*y_tick_size, s=config.text())
+            plt.tight_layout()
+            plt.savefig(f"{config.path()}/MR_lhc_uhc_low_h.pdf", dpi=600)
+            plt.close()
+        except Exception as e:
+            print(f"{type(e)} {e}")
+
+        try:
+            fig, ax = plt.subplots()
+            ax.tick_params(direction='in', which='both', right=True, top=True)
+            ax.minorticks_on()
+            ax.set_xlabel(r'$h_x$($J_1 \cdot \mu_B$)')
+            ax.set_ylabel(r'$\delta^{R}_{ТМС}, \%$')
 
             file_header = "t\t\tMR\t\terr\t\t"
             file_data = np.zeros(shape=(1, len(MR_R)))
             file_data[0] = x
-            plot(ax, x=x, y=MR_R, yerr=MR_R_err, fmt=markers[0]+'-', label=r'$\delta_{R}$')
+            plot(ax, x=x, y=MR_R, yerr=MR_R_err, fmt=markers[0]+'-', label=r'$\delta^{R}_{ТМС}$')
 
             file_data = np.concatenate(
                 (file_data, np.array([MR_R]), np.array(object=[MR_R_err])), 
@@ -343,8 +386,8 @@ if __name__ == "__main__":
             fig, ax = plt.subplots()
             ax.tick_params(direction='in', which='both', right=True, top=True)
             ax.minorticks_on()
-            ax.set_xlabel(r'$h_x$($J_1$)')
-            ax.set_ylabel(r'$P_{s}, \%$')
+            ax.set_xlabel(r'$h_x$($J_1 \cdot \mu_B$)')
+            ax.set_ylabel(r'$P^{R}_{s}, \%$')
 
             file_header = "t\t\tPs\t\terr\t\t"
             file_data = np.zeros(shape=(1, len(MR_R)))
@@ -382,10 +425,11 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"{type(e)} {e}")
 
+
         x = list()
         MR_Ps = list()
         MR_Ps_err = list()
-        for (field, average) in data["P_mod"].items():
+        for (field, average) in data["P"].items():
             x.append(field.x)
 
             p1 = average[0][0]
@@ -398,22 +442,22 @@ if __name__ == "__main__":
                 (p1_err / p1 + p2_err / p2)) * tmr
 
             MR_Ps.append(tmr * 100)
-            if config.N == 7:
-                MR_Ps_err.append(0.0)
-            else:
-                MR_Ps_err.append(err * 100)
+            # if config.N == 7:
+            #     MR_Ps_err.append(0.0)
+            # else:
+            MR_Ps_err.append(err * 100)
 
         try:
             fig, ax = plt.subplots()
             ax.tick_params(direction='in', which='both', right=True, top=True)
             ax.minorticks_on()
-            ax.set_xlabel(r'$h_x$($J_1$)')
-            ax.set_ylabel(r'$\delta_{ТМС}, \%$')
+            ax.set_xlabel(r'$h_x$($J_1 \cdot \mu_B$)')
+            ax.set_ylabel(r'$\delta^{P_s}_{ТМС}, \%$')
 
             file_header = "t\t\tMR\t\terr\t\t"
             file_data = np.zeros(shape=(1, len(MR_Ps)))
             file_data[0] = x
-            plot(ax, x=x, y=MR_Ps, yerr=MR_Ps_err, fmt=markers[0]+'-', label=r'$\delta_{P}$')
+            plot(ax, x=x, y=MR_Ps, yerr=MR_Ps_err, fmt=markers[0]+'-', label=r'$\delta^{P_s}_{ТМС}$')
 
             file_data = np.concatenate(
                 (file_data, np.array([MR_Ps]), np.array(object=[MR_Ps_err])), 
@@ -425,12 +469,68 @@ if __name__ == "__main__":
             x_tick_size = abs(x_max - x_min) / 10
             y_tick_size = abs(y_max - y_min) / 10
 
-            plt.text(x=x_max - 3*x_tick_size, y=y_min + 4*y_tick_size, s=config.text() + "\n" + r"$A_{fb}=-0.8$")
+            plt.text(x=x_max - 3*x_tick_size, y=y_min + 4*y_tick_size, s=config.text())
             plt.tight_layout()
             plt.savefig(f"{config.path()}/MR_Ps_h.pdf", dpi=600)
             plt.close()
 
             np.savetxt(fname=f"{config.path()}/MR_Ps_h.dat", comments="",
+                header=file_header,
+                newline="\n", delimiter="\t", fmt=("%.2f\t" + "%.2f\t" * (file_data.shape[0] - 1)),
+                X=np.rot90(file_data))
+        except Exception as e:
+            print(f"{type(e)} {e}")
+
+
+        x_mod = list()
+        MR_Ps_mod = list()
+        MR_Ps_mod_err = list()
+        for (field, average) in data["P_mod"].items():
+            x_mod.append(field.x)
+
+            p1 = average[0][0]
+            p1_err = average[0][1]
+            p2 = average[1][0]
+            p2_err = average[1][1]
+
+            tmr = abs(2 * p1 * p2/(1 - p1 * p2))
+            err = abs((p1_err / p1 + p2_err / p2) +
+                (p1_err / p1 + p2_err / p2)) * tmr
+
+            MR_Ps_mod.append(tmr * 100)
+            # if config.N == 7:
+            #     MR_Ps_mod_err.append(0.0)
+            # else:
+            MR_Ps_mod_err.append(err * 100)
+
+        try:
+            fig, ax = plt.subplots()
+            ax.tick_params(direction='in', which='both', right=True, top=True)
+            ax.minorticks_on()
+            ax.set_xlabel(r'$h_x$($J_1 \cdot \mu_B$)')
+            ax.set_ylabel(r'$\delta^{P_s^*}_{ТМС}, \%$')
+
+            file_header = "t\t\tMR\t\terr\t\t"
+            file_data = np.zeros(shape=(1, len(MR_Ps_mod)))
+            file_data[0] = x_mod
+            plot(ax, x=x_mod, y=MR_Ps_mod, yerr=MR_Ps_mod_err, fmt=markers[0]+'-', label=r'$\delta^{P_s^*}_{ТМС}$')
+
+            file_data = np.concatenate(
+                (file_data, np.array([MR_Ps_mod]), np.array(object=[MR_Ps_mod_err])), 
+                    axis=0)
+
+            ax.legend()
+            x_min, x_max = ax.xaxis.get_data_interval()
+            y_min, y_max = ax.yaxis.get_data_interval()
+            x_tick_size = abs(x_max - x_min) / 10
+            y_tick_size = abs(y_max - y_min) / 10
+
+            plt.text(x=x_max - 3*x_tick_size, y=y_min + 4*y_tick_size, s=config.text() + "\n" + r"$A_{fb}=-0.8$")
+            plt.tight_layout()
+            plt.savefig(f"{config.path()}/MR_Ps_mod_h.pdf", dpi=600)
+            plt.close()
+
+            np.savetxt(fname=f"{config.path()}/MR_Ps_mod_h.dat", comments="",
                 header=file_header,
                 newline="\n", delimiter="\t", fmt=("%.2f\t" + "%.2f\t" * (file_data.shape[0] - 1)),
                 X=np.rot90(file_data))
